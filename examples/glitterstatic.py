@@ -437,38 +437,42 @@ def compose() -> Score:
 
 # -------------------------------------------------------------- song + mix ----
 def song_spec(score_path: str, plugins: bool = True) -> dict:
-    saws = "supersaw_surge" if plugins else "supersaw_poly"
+    # Fader values come from a balance pass on real MAGDA renders (per-track
+    # loudness where each part leads, set relative to the kick); Surge XT's
+    # saws were not part of that pass, so they keep the preset's level.
+    saws = {"name": "saws", "preset": "supersaw_surge"} if plugins else \
+        {"name": "saws", "preset": "supersaw_poly", "volume": 1.04}
     return {
         "title": "glitterstatic",
         "score": score_path,
         "tracks": [
-            {"name": "kick", "preset": "kick_punch"},
-            {"name": "snare", "preset": "snare_tight"},
-            {"name": "clap", "preset": "clap_wide"},
-            {"name": "hat", "preset": "hat_closed"},
-            {"name": "ohat", "preset": "hat_open"},
-            {"name": "bass", "preset": "bass_808"},
-            {"name": "sub", "preset": "sub_sine", "volume": 0.3},
-            {"name": "pad", "preset": "pad_sweep", "volume": 0.24},
-            {"name": "saws", "preset": saws},
-            {"name": "stab", "preset": "supersaw_poly", "volume": 0.2,
+            {"name": "kick", "preset": "kick_punch", "volume": 0.228},
+            {"name": "snare", "preset": "snare_tight", "volume": 0.294},
+            {"name": "clap", "preset": "clap_wide", "volume": 0.36},
+            {"name": "hat", "preset": "hat_closed", "volume": 0.329},
+            {"name": "ohat", "preset": "hat_open", "volume": 0.305},
+            {"name": "bass", "preset": "bass_808", "volume": 0.147},
+            {"name": "sub", "preset": "sub_sine", "volume": 0.156},
+            {"name": "pad", "preset": "pad_sweep", "volume": 0.343},
+            saws,
+            {"name": "stab", "preset": "supersaw_poly", "volume": 1.05,
              "params": {"Amp Decay": 80.0, "Amp Sustain": 0.6, "Amp Release": 30.0}},
-            {"name": "bells", "preset": "bell_fm", "params": {"Op2 Ratio": 4.0, "Amp Decay": 260.0}, "volume": 0.18},
-            {"name": "bells_soft", "preset": "bell", "params": {"decay": 1400.0}, "volume": 0.2},
-            {"name": "lead", "preset": "lead_glide"},
-            {"name": "lead_lo", "preset": "lead_glide", "params": {"Cutoff": 2600.0}, "volume": 0.2},
-            {"name": "topline", "preset": "lead_glide", "stem": "topline", "volume": 0.26,
+            {"name": "bells", "preset": "bell_fm", "params": {"Op2 Ratio": 4.0, "Amp Decay": 260.0}, "volume": 0.617},
+            {"name": "bells_soft", "preset": "bell", "params": {"decay": 1400.0}, "volume": 1.32},
+            {"name": "lead", "preset": "lead_glide", "volume": 0.414},
+            {"name": "lead_lo", "preset": "lead_glide", "params": {"Cutoff": 2600.0}, "volume": 0.219},
+            {"name": "topline", "preset": "lead_glide", "stem": "topline", "volume": 0.389,
              "params": {"Cutoff": 3400.0, "Glide": 30.0, "Amp Attack": 8.0}},
-            {"name": "sparkle", "preset": "lead_fm_crushed", "stem": "topline", "volume": 0.12},
-            {"name": "harm", "preset": "lead_fm_crushed", "stem": "topline", "volume": 0.13,
+            {"name": "sparkle", "preset": "lead_fm_crushed", "stem": "topline", "volume": 0.281},
+            {"name": "harm", "preset": "lead_fm_crushed", "stem": "topline", "volume": 0.44,
              "params": {"M21": 0.8}},
-            {"name": "chops", "preset": "chop_square", "stem": "chops"},
-            {"name": "riser", "preset": "riser"},
-            {"name": "swell", "preset": "noise_swell", "params": {"Amp Attack": 600.0}},
-            {"name": "static", "preset": "static_crush", "volume": 0.16},
-            {"name": "crash", "preset": "crash_noise"},
-            {"name": "impact", "preset": "impact_boom"},
-            {"name": "beep", "preset": "beep", "volume": 0.18},
+            {"name": "chops", "preset": "chop_square", "stem": "chops", "volume": 0.516},
+            {"name": "riser", "preset": "riser", "volume": 0.643},
+            {"name": "swell", "preset": "noise_swell", "params": {"Amp Attack": 600.0}, "volume": 0.236},
+            {"name": "static", "preset": "static_crush", "volume": 0.055},
+            {"name": "crash", "preset": "crash_noise", "volume": 0.314},
+            {"name": "impact", "preset": "impact_boom", "volume": 0.309},
+            {"name": "beep", "preset": "beep", "volume": 0.216},
         ],
         "render": {"stems": True, "tail_beats": 4, "bit_depth": 24},
     }
@@ -489,14 +493,19 @@ def mix_spec() -> dict:
     return {
         "score": "score.json", "stems_dir": "stems",
         "stems": {
+            # pre-choruses sit 1.5 dB under the drums of the chorus they lead into
             "drums": {"automation": {"lowpass_hz": [[0, 380], ["intro+12", 650, "jump"], ["intro.end-0.05", 900],
-                                                    ["intro.end", 20000, "jump"]]}},
+                                                    ["intro.end", 20000, "jump"]],
+                                     "gain_db": [[0, 0], ["pre1", -1.5, "jump"], ["pre1.end", 0, "jump"],
+                                                 ["pre2", -1.5, "jump"], ["pre2.end", 0, "jump"]]}},
             "bass": {"mono_below_hz": 150},
-            "synths": {"automation": music, "eq": [{"type": "highpass", "freq": 120}]},
+            "synths": {"automation": music, "eq": [{"type": "highpass", "freq": 120}], "width": 1.3},
             "lead": {"automation": music},
             "topline": {"eq": [{"type": "highpass", "freq": 180}, {"type": "bell", "freq": 2800, "q": 1.0,
                                                                    "gain_db": 2.0}]},
-            "chops": {"eq": [{"type": "highpass", "freq": 250}]},
+            # the phone-filtered hook reads louder than its level: keep the intro and outro calls back
+            "chops": {"eq": [{"type": "highpass", "freq": 250}],
+                      "automation": {"gain_db": [[0, -6], ["intro.end", 0, "jump"], ["outro", -2, "jump"]]}},
             "fx": {"gain_db": -1.0},
         },
         "sidechain": [{"trigger": {"part": "kick"}, "targets": ["synths", "lead"], "depth_db": 5,

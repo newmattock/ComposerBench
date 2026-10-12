@@ -48,6 +48,16 @@ def test_legato_slides_and_retriggers():
     assert out[1]["start"] + out[1]["duration"] == pytest.approx(1.98)   # retriggers the 3rd
 
 
+def test_legato_does_not_slide_across_a_rest():
+    # a slide flagged on the last note of a section must not sustain through the
+    # silent section that follows to reach the next note
+    line = [note(0, 0.75, 40), note(32, 1, 45)]
+    out = legato(line, [True, False])
+    assert out[0]["duration"] == pytest.approx(0.75)
+    near = legato([note(0, 0.75, 40), note(1.5, 1, 45)], [True, False])
+    assert near[0]["start"] + near[0]["duration"] == pytest.approx(1.56)
+
+
 def test_ramp_trim_and_transforms():
     ns = [note(i, 0.5, 60, 50) for i in range(5)]
     r = ramp(ns, 20, 120)

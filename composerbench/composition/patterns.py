@@ -179,12 +179,15 @@ def chord_notes(pitches: list[int], start: float, duration: float, velocity: flo
 
 
 def legato(notes: list[Note], slide: Iterable[bool] | None = None, overlap: float = 0.06,
-           gap: float = 0.02) -> list[Note]:
+           gap: float = 0.02, max_slide_gap: float = 1.0) -> list[Note]:
     """Prepare a mono line for a Legato/Glide synth.
 
     Notes flagged in ``slide`` are extended to overlap the next note by
     ``overlap`` beats (the synth glides instead of retriggering); all other notes
-    end ``gap`` beats before the next note starts (clean retrigger).
+    end ``gap`` beats before the next note starts (clean retrigger). A slide is
+    skipped when the next note starts more than ``max_slide_gap`` beats after the
+    flagged note ends, so a slide at the end of a section never sustains through
+    the rest that follows it.
     """
     ns = sorted((dict(n) for n in notes), key=lambda n: n["start"])
     flags = list(slide) if slide is not None else [False] * len(ns)
@@ -192,7 +195,8 @@ def legato(notes: list[Note], slide: Iterable[bool] | None = None, overlap: floa
         nxt = ns[i + 1]["start"]
         end = n["start"] + n["duration"]
         if i < len(flags) and flags[i]:
-            n["duration"] = round(max(n["duration"], nxt - n["start"] + overlap), 6)
+            if nxt - end <= max_slide_gap:
+                n["duration"] = round(max(n["duration"], nxt - n["start"] + overlap), 6)
         elif end > nxt - gap:
             n["duration"] = round(max(0.01, nxt - gap - n["start"]), 6)
     return ns
