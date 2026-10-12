@@ -7,7 +7,7 @@ from composerbench.model import Note
 
 class Action(BaseModel):
     model_config = ConfigDict(extra='forbid', allow_inf_nan=False)
-    type: Literal['create_track', 'create_clip', 'add_notes', 'transpose_clip',
+    type: Literal['create_track', 'create_clip', 'add_notes', 'set_notes', 'transpose_clip',
                   'set_tempo', 'load_device', 'set_volume', 'add_fx',
                   'set_parameter', 'apply_role']
     track: str | None = None
@@ -21,7 +21,7 @@ class Action(BaseModel):
     semitones: int = 0
     device: str | None = None
     parameter: str | None = None
-    value: float | None = None
+    value: float | str | None = None   # number, or a choice label such as "Hall"
 
     @model_validator(mode='after')
     def required_fields(self):
@@ -58,6 +58,7 @@ async def preflight(daw, actions) -> list[Action]:
     for a in actions:
         needed = {'add_fx': 'effects', 'set_parameter': 'plugin_parameters',
                   'apply_role': 'semantic_roles', 'add_notes': 'midi_edit',
+                  'set_notes': 'bulk_notes',
                   'create_clip': 'midi_edit', 'transpose_clip': 'midi_edit'}.get(a.type)
         if needed and not getattr(caps, needed):
             from composerbench.errors import UnsupportedOperation
@@ -85,18 +86,25 @@ async def preflight(daw, actions) -> list[Action]:
             if any(c.name == name for c in clips[tid]): raise ValueError(f'duplicate clip {name}')
             clips[tid].append(Clip(id=f'clip:{name}', name=name, track_id=tid,
                                    start=a.start_beats, length=a.length_beats))
-        if a.type in ('add_notes', 'transpose_clip'):
-            c = clip_for(clips[tid], a.clip, a.start_beats)
+        if a.type in ('add_notes', 'set_notes', 'transpose_clip'):
+            ref_start = a.notes[0].start if (a.clip is None and a.notes) else a.start_beats
+            c = clip_for(clips[tid], a.clip, ref_start)
             if any(not c.start <= n.start < c.start+c.length for n in a.notes):
                 raise ValueError(f'note starts outside clip {c.name}')
         if a.type == 'set_parameter':
+            from composerbench.params import UnknownParameterLabel, find, resolve_value
             params = await daw.get_parameters(tid, a.device)
-            choices = [(key, p) for key, p in params.items() if str(key) == a.parameter
-                       or p.get('name') == a.parameter or p.get('stableId') == a.parameter]
-            if len(choices) != 1: raise LookupError(f'unknown or ambiguous parameter {a.parameter}')
-            key, param = choices[0]
-            lo, hi = param.get('range', [param.get('min', 0), param.get('max', 1)])
-            if not lo <= a.value <= hi: raise ValueError(f'parameter {a.parameter} must be in [{lo}, {hi}]')
+            key, param = find(params, a.parameter)   # ParameterNotFound is a LookupError
+            # labels ("Hall", "1/8.") resolve here; numbers are range-checked
+            try:
+                a.value = resolve_value(param, a.value)
+            except UnknownParameterLabel:
+                # hosted plugins may only reveal their labels on request
+                describe = getattr(daw, 'describe_parameter', None)
+                info = await describe(tid, a.device, key) if describe else {}
+                if not info.get('choices'):
+                    raise
+                a.value = resolve_value({**param, **info}, a.value)
             a.parameter = str(key)
     return actions
 
@@ -127,6 +135,8 @@ async def apply(daw, a: Action):
     if a.type == 'set_parameter':
         await daw.set_parameter(t.id, a.device, a.parameter, a.value)
         return {'device_id': a.device, 'parameter': a.parameter, 'value': a.value}
-    c = clip_for(await daw.get_clips(t.id), a.clip, a.start_beats)
+    ref_start = a.notes[0].start if (a.clip is None and a.notes) else a.start_beats
+    c = clip_for(await daw.get_clips(t.id), a.clip, ref_start)
     if a.type == 'add_notes': return {'added': await daw.add_notes(t.id, c.id, a.notes)}
+    if a.type == 'set_notes': return {'notes': await daw.set_notes(t.id, c.id, a.notes), 'clip': c.id}
     return {'changed': await daw.modify_notes(t.id, c.id, list(range(len(c.notes))), transpose=a.semitones)}

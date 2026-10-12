@@ -17,6 +17,7 @@ import struct
 import uuid
 import wave
 from pathlib import Path
+from typing import Any
 
 from composerbench.adapter.base import AdapterCapabilities, DawAdapter, RenderRequest
 from composerbench.errors import (
@@ -88,6 +89,9 @@ class FakeDawAdapter(DawAdapter):
             automation=True,
             undo=True,
             snapshots=True,
+            bulk_notes=True,
+            explicit_save=True,
+            parameter_labels=True,
         )
 
     # ---- internal helpers -------------------------------------------------------
@@ -209,6 +213,19 @@ class FakeDawAdapter(DawAdapter):
         self._bump()
         return len(notes)
 
+    async def set_notes(self, track_id: str, clip_id: str, notes: list[Note]) -> int:
+        clip = self._require_clip(clip_id)
+        self._require_track(track_id)
+        if clip.track_id != track_id:
+            raise EntityNotFound("clip-on-track", f"{clip_id}@{track_id}")
+        for n in notes:
+            if not clip.start - 1e-6 <= n.start < clip.start + clip.length:
+                raise ParameterOutOfRange(parameter="note.start", received=n.start,
+                                          allowed=[clip.start, clip.start + clip.length])
+        clip.notes = copy.deepcopy(list(notes))
+        self._bump({"kind": "set_notes"})
+        return len(notes)
+
     async def modify_notes(
         self,
         track_id: str,
@@ -260,16 +277,21 @@ class FakeDawAdapter(DawAdapter):
                 "cutoff": {"value": 0.5, "range": [0.0, 1.0]},
                 "attack": {"value": 0.1, "range": [0.0, 1.0]},
                 "release": {"value": 0.3, "range": [0.0, 1.0]},
+                "mode": {"value": 0.0, "range": [0.0, 2.0],
+                         "choices": ["Poly", "Mono", "Legato"]},
             },
         }
         self._bump()
         return device
 
-    async def set_parameter(self, track_id: str, device_id: str, parameter: str, value: float) -> None:
+    async def set_parameter(self, track_id: str, device_id: str, parameter: str, value: float | str) -> None:
         self._require_track(track_id)
         dev = self._devices.get(device_id)
         if dev is None or parameter not in dev["params"]:
             raise EntityNotFound("parameter", f"{device_id}.{parameter}")
+        if isinstance(value, str):
+            from composerbench.params import resolve_value
+            value = resolve_value({"name": parameter, **dev["params"][parameter]}, value)
         lo, hi = dev["params"][parameter]["range"]
         if value < lo or value > hi:
             raise ParameterOutOfRange(

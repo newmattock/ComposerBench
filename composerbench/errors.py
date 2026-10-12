@@ -57,3 +57,19 @@ class ConnectionLost(ComposerBenchError):
 
 class MalformedDump(ComposerBenchError):
     code = "MALFORMED_DUMP"
+
+
+class NoProject(ComposerBenchError):
+    code = "NO_PROJECT"
+
+
+class ProjectExists(ComposerBenchError):
+    code = "PROJECT_EXISTS"
+
+
+class ProjectNotFound(ComposerBenchError):
+    code = "PROJECT_NOT_FOUND"
+
+
+class MagdaCliNotFound(ComposerBenchError):
+    code = "MAGDA_CLI_NOT_FOUND"

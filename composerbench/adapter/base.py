@@ -29,6 +29,12 @@ class AdapterCapabilities:
     automation: bool = False
     undo: bool = False
     snapshots: bool = False
+    # Agent-ergonomics features (ComposerBench x MAGDA serve protocol 2)
+    bulk_notes: bool = False          # add/replace a whole clip's notes in one request
+    explicit_save: bool = False       # edits need not save per command; save_project() persists
+    parameter_labels: bool = False    # parameters report choices / display text
+    external_plugins: bool = False    # AU/VST3/LV2 can be hosted
+    plugin_persistence: bool = False  # hosted plugins (and their state) are saved in the project
 
     def to_dict(self) -> dict[str, bool]:
         return asdict(self)
@@ -101,6 +107,15 @@ class DawAdapter(ABC):
     @abstractmethod
     async def add_notes(self, track_id: str, clip_id: str, notes: list[Note]) -> int: ...
 
+    async def set_notes(self, track_id: str, clip_id: str, notes: list[Note]) -> int:
+        """Replace every note in a clip with ``notes`` (timeline-absolute starts).
+
+        One call per clip instead of thousands of per-note edits. Adapters
+        without a native bulk path may emulate it; the default refuses.
+        """
+        from composerbench.errors import UnsupportedOperation
+        raise UnsupportedOperation(reason="set-notes-not-supported", adapter=type(self).__name__)
+
     @abstractmethod
     async def modify_notes(
         self,
@@ -119,11 +134,31 @@ class DawAdapter(ABC):
     @abstractmethod
     async def set_track_volume(self, track_id: str, volume: float) -> None: ...
 
+    async def set_track_volumes(self, volumes: dict[str, float]) -> None:
+        """Several faders at once (default: one call each; engines may batch)."""
+        for track_id, volume in volumes.items():
+            await self.set_track_volume(track_id, volume)
+
     @abstractmethod
     async def load_device(self, track_id: str, device_name: str) -> Device: ...
 
     @abstractmethod
     async def set_parameter(self, track_id: str, device_id: str, parameter: str, value: float) -> None: ...
+
+    async def set_parameters(self, track_id: str, device_id: str, values: dict[str, Any]) -> list[dict]:
+        """Set several parameters on one device; one result per parameter.
+
+        Default: one set_parameter call each, failures reported rather than raised.
+        """
+        results = []
+        for name, value in values.items():
+            try:
+                await self.set_parameter(track_id, device_id, name, value)
+                results.append({"param": name, "requested": value, "ok": True})
+            except Exception as e:  # noqa: BLE001 - reported per parameter
+                results.append({"param": name, "requested": value, "ok": False,
+                                "error": f"{type(e).__name__}: {e}"[:300]})
+        return results
 
     @abstractmethod
     async def automate_parameter(

@@ -69,6 +69,9 @@ class MagdaCliAdapter(DawAdapter):
         self._aliases: dict[str, int] = {}
         self._alias_file = self.project.parent / ".musicbench" / "aliases.json"
         self._track_devices: dict[str, list[Device]] = {}
+        # Clips rebuilt by set_notes on engines without a bulk note op get a
+        # new engine id; callers holding the old id are forwarded to the new one.
+        self._clip_remap: dict[int, int] = {}
         self._load_device_registry()
         self._load_aliases()
 
@@ -326,23 +329,33 @@ class MagdaCliAdapter(DawAdapter):
     async def _numeric_clip_id(self, track_id: str, clip_ref: str) -> int:
         raw = clip_ref.removeprefix("clip:")
         clips = await self.get_clips(track_id)
+        if raw.isdigit() and not any(c.id == f"clip:{raw}" for c in clips):
+            seen = set()
+            forwarded = int(raw)
+            while forwarded in self._clip_remap and forwarded not in seen:
+                seen.add(forwarded)
+                forwarded = self._clip_remap[forwarded]
+            raw = str(forwarded)
         matches = [c for c in clips if c.id == clip_ref or c.id == f"clip:{raw}" or c.name == raw]
         if len(matches) != 1:
             raise EntityNotFound('unambiguous clip on track', clip_ref, [c.name for c in clips])
         return int(matches[0].id.removeprefix('clip:'))
 
-    async def add_notes(self, track_id: str, clip_id: str, notes: list[Note]) -> int:
+    async def _prepare_notes(self, track_id: str, clip_id: str, notes: list[Note]):
+        """Resolve ids and convert timeline-absolute notes to clip-relative ones.
+
+        The engine takes CLIP-RELATIVE starts and silently drops out-of-range
+        notes while reporting success (verified experimentally), so
+        containment is enforced here, before anything is sent.
+        """
         from composerbench.errors import ParameterOutOfRange
 
         tid = await self._numeric_track_id(track_id)
         cid = await self._numeric_clip_id(track_id, clip_id)
         clips = await self.get_clips(track_id)
         clip = next(c for c in clips if int(c.id.removeprefix("clip:")) == cid)
-        cmds = []
+        rel_notes = []
         for n in notes:
-            # The CLI takes CLIP-RELATIVE starts and silently drops
-            # out-of-range notes while exiting 0 (verified experimentally),
-            # so convert and enforce containment here.
             rel = n.start - clip.start
             if rel < -1e-6 or rel + n.duration > clip.length + 1e-6:
                 raise ParameterOutOfRange(
@@ -351,10 +364,38 @@ class MagdaCliAdapter(DawAdapter):
                     allowed=[clip.start, clip.start + clip.length],
                     hint=f"clip {clip.id!r} covers beats [{clip.start}, {clip.start + clip.length})",
                 )
+            rel_notes.append((max(0.0, rel), n))
+        return tid, cid, clip, rel_notes
+
+    async def add_notes(self, track_id: str, clip_id: str, notes: list[Note]) -> int:
+        _, cid, _, rel_notes = await self._prepare_notes(track_id, clip_id, notes)
+        cmds = []
+        for rel, n in rel_notes:
             cmds.append("add-midi-note")
             cmds += [str(cid), f"{rel:.6f}", str(n.pitch), str(n.duration), str(n.velocity)]
-        await self._exec(*cmds)
+        if cmds:
+            await self._exec(*cmds)
         return len(notes)
+
+    async def set_notes(self, track_id: str, clip_id: str, notes: list[Note]) -> int:
+        """Replace a clip's notes. The CLI has no note delete, so the clip is
+        rebuilt in place (same track/start/length, same ComposerBench name)."""
+        tid, cid, clip, _ = await self._prepare_notes(track_id, clip_id, notes)
+        before = {c.id for c in await self.get_clips(track_id)}
+        await self._exec("delete-clip", str(cid), "add-midi-clip", str(tid),
+                         repr(float(clip.start)), repr(float(clip.length)))
+        added = [c for c in await self.get_clips(track_id)
+                 if c.id not in before or c.id == f"clip:{cid}"]
+        fresh = [c for c in added if abs(c.start - clip.start) < 1e-6]
+        if len(fresh) != 1:
+            raise ValueError("cannot identify the rebuilt clip unambiguously")
+        new_id = int(fresh[0].id.removeprefix("clip:"))
+        for key in [k for k, v in self._aliases.items() if v == cid]:
+            del self._aliases[key]
+        self._remember(f"clip@{tid}:{clip.name}", new_id)
+        if new_id != cid:
+            self._clip_remap[cid] = new_id
+        return await self.add_notes(track_id, f"clip:{new_id}", notes) if notes else 0
 
     async def modify_notes(self, track_id: str, clip_id: str, note_indices: list[int],
                            *, transpose: int = 0, velocity_scale: float = 1.0,
@@ -461,7 +502,8 @@ class MagdaCliAdapter(DawAdapter):
             args += ["--to", f"{(request.start_beats or 0) + request.length_beats}beats"]
         await self._run_cli(*args)
         if not out.exists():
-            raise ComposerBenchError("RENDER_FAILED", output=str(out))
+            from composerbench.errors import RenderFailed
+            raise RenderFailed(output=str(out))
         return out
 
     async def save_project(self) -> None:

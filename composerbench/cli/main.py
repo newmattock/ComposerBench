@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import sys
 from pathlib import Path
 
 from composerbench.client import ComposerBench
@@ -135,7 +136,8 @@ async def cmd_doctor(ns: argparse.Namespace) -> int:
 
     cli_path = Path(ns.cli).expanduser()
     if not cli_path.exists():
-        raise ComposerBenchError("DOCTOR_CLI_MISSING", cli=str(cli_path))
+        from composerbench.errors import MagdaCliNotFound
+        raise MagdaCliNotFound(cli=str(cli_path))
 
     silent_evidence = ["square", "pulse", "saw", "noise", "triangle", "sine"]
     candidates = (
@@ -340,6 +342,31 @@ async def cmd_ext_params(ns: argparse.Namespace) -> int:
     return 0
 
 
+async def cmd_mcp(ns: argparse.Namespace) -> int:
+    """Register/inspect the MCP server for agent clients (Claude, Cursor)."""
+    from composerbench.mcp import install as mcp_install
+
+    entry = mcp_install.server_entry(cli=ns.cli, workspace=ns.workspace)
+    if ns.mcp_action == "config":
+        print(json.dumps({"mcpServers": {ns.name: entry}}, indent=2))
+        return 0
+    if ns.mcp_action == "doctor":
+        report = mcp_install.doctor(entry)
+        print(json.dumps(report, indent=2, default=str))
+        return 0 if report.get("ok") else 1
+    requested = ns.client or ["all"]
+    clients = list(mcp_install.CLIENTS) if "all" in requested else requested
+    results = mcp_install.install(clients, entry, name=ns.name, dry_run=ns.dry_run)
+    print(json.dumps({"server": entry, "results": results}, indent=2, default=str))
+    if not entry["env"].get("COMPOSERBENCH_CLI"):
+        print("warning: magda_cli was not found; the server will fall back to the fake "
+              "emulator until COMPOSERBENCH_CLI points at a built binary", file=sys.stderr)
+    if not ns.dry_run:
+        print("Restart Claude Desktop / Cursor (or start a new Claude Code session) "
+              "to load the composerbench tools.", file=sys.stderr)
+    return 0 if all(r.get("status") != "failed" for r in results) else 1
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="composerbench", description="agentic musical workspace")
     p.add_argument("--adapter", default="fake", choices=["fake", "magda"])
@@ -415,6 +442,19 @@ def build_parser() -> argparse.ArgumentParser:
                       help="set a parameter by name (normalised 0..1)")
     extp.set_defaults(func=cmd_ext_params)
 
+    mcp = sub.add_parser("mcp", help="register the ComposerBench MCP server with agent clients")
+    mcp.add_argument("mcp_action", choices=["install", "config", "doctor"])
+    mcp.add_argument("--client", action="append", default=None,
+                     choices=["claude-desktop", "claude-code", "cursor", "all"],
+                     help="repeatable; default: all")
+    mcp.add_argument("--name", default="composerbench", help="server name in client configs")
+    mcp.add_argument("--workspace", default=None,
+                     help="where new projects go (default ~/Music/ComposerBench/projects)")
+    mcp.add_argument("--dry-run", action="store_true", help="show changes without writing")
+    mcp.set_defaults(func=cmd_mcp)
+
+    from composerbench.cli.production import register
+    register(sub)
     return p
 
 

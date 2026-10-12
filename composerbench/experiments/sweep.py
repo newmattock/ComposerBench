@@ -43,6 +43,15 @@ async def sweep(daw, track_name: str, recipe: RoleRecipe,
     plugin_id = registry.resolve_engine(recipe.engine)
     dev = await daw.add_plugin(track_name, plugin_id, as_instrument=True)
     try:
+        # Reproduce the rest of the role first: a swept value only means
+        # something in the recipe's context (e.g. a cutoff needs the filter
+        # switched on -- Surge's init patch leaves it Off).
+        context = context_specs(recipe, param_names)
+        if context:
+            shaped = await daw.shape_params(track_name, dev, context)
+            failed = [r for r in shaped if not r.get("param") or r.get("error")]
+            if failed:
+                raise ValueError(f"could not reproduce the role context: {failed}")
         for v in values:
             # Surge has per-scene filters (A/B); shape every cutoff-named
             # parameter together so the audible path is definitely affected.
@@ -70,6 +79,11 @@ async def sweep(daw, track_name: str, recipe: RoleRecipe,
     return rows
 
 
+def context_specs(recipe: RoleRecipe, param_names: list[str]) -> list:
+    """The recipe's other parameters: what must hold while one is swept."""
+    return [p for p in recipe.params if not p.overlaps(param_names)]
+
+
 def learn_brightness_mapping(rows: list[dict]) -> dict | None:
     """Pick the value whose brightness lands closest to the middle of the
     observed range. Metric: high-band share (>2 kHz), centroid fallback.
@@ -90,7 +104,10 @@ def learn_brightness_mapping(rows: list[dict]) -> dict | None:
 
 
 def save_learned(role_slug: str, param_names: list[str], pick: dict,
-                 learned_dir: Path) -> Path:
+                 learned_dir: Path, recipe: RoleRecipe | None = None) -> Path:
+    """Persist a learned value together with the context it was learned in
+    (the recipe's other parameters), so SemanticRegistry.merge_learned can
+    refuse it once the recipe changes."""
     learned_dir.mkdir(parents=True, exist_ok=True)
     doc = {
         "role": role_slug,
@@ -101,6 +118,9 @@ def save_learned(role_slug: str, param_names: list[str], pick: dict,
                      "brightness_range": pick.get("range"),
                      "picked": pick.get("picked")},
     }
+    if recipe is not None:
+        doc["context"] = [p.model_dump(include={"names", "label", "value"}, exclude_none=True)
+                          for p in context_specs(recipe, param_names)]
     out = learned_dir / f"{role_slug}.json"
     out.write_text(json.dumps(doc, indent=1))
     return out

@@ -21,11 +21,17 @@ await mb.initialize()
 # await mb.close()
 ```
 
-For MCP, run `python -m composerbench.mcp.server` with:
+For MCP, `composerbench mcp install` registers the server with Claude Desktop,
+Claude Code and Cursor in one step (see [Agent access](AGENT_ACCESS.md)). It
+runs `python -m composerbench.mcp.server` with:
 
-- `COMPOSERBENCH_ADAPTER=magda_serve` (or `magda` with `COMPOSERBENCH_SERVE=1`)
-- `COMPOSERBENCH_CLI` pointing to the installed MAGDA binary
-- `COMPOSERBENCH_PROJECT` pointing to the project
+- `COMPOSERBENCH_ADAPTER=magda_serve` (the default when a MAGDA binary is found;
+  `magda` with `COMPOSERBENCH_SERVE=1` is equivalent)
+- `COMPOSERBENCH_CLI` pointing to the installed MAGDA binary (auto-discovered in
+  the usual `~/magda-core` build folders when unset)
+- optionally `COMPOSERBENCH_PROJECT`; otherwise agents call `music_project_new` /
+  `music_project_open`, with new projects under `COMPOSERBENCH_WORKSPACE`
+  (default `~/Music/ComposerBench/projects`)
 
 `magda` without serve retains the process-per-operation adapter. `fake` is an
 emulator: its audio does not model musical edits and cannot validate production
@@ -39,9 +45,12 @@ agent production transactions.
 
 ## Tool sequence
 
+0. `music_status`, then `music_project_new` or `music_project_open`.
 1. `music_capabilities`, `music_project_inspect`, `music_track_inspect`.
 2. `music_devices_inspect` / `music_parameters_inspect` for current handles,
-   parameter names, units and legal ranges.
+   parameter names, units and legal ranges; `music_parameter_describe` for one
+   parameter's labels and current display text. Discrete parameters accept
+   labels (`"Hall"`, `"LP 12 dB"`) as well as numbers.
 3. `music_batch_edit` for deliberate edits, or `music_revision_run` for candidates
    that should only be retained when they improve an explicit objective.
 4. `music_render` / `music_critique` for auditable audio and advisory findings.
@@ -49,8 +58,10 @@ agent production transactions.
    `music_snapshot_create` / `music_snapshot_restore` for explicit checkpoints.
 
 Other tools: `music_volume_set`, `music_parameter_set`, `music_fx_add`,
-`music_roles_list`, `music_role_apply`, plus existing track/clip/note, intent and
-plan tools. Every tool publishes an input and output schema, validates its input,
+`music_roles_list`, `music_role_apply`, `music_notes_set` (a whole clip in one
+call), `music_plugins_list` / `music_plugin_add` (hosted AU/VST3, saved with the
+project on serve protocol 2), `music_project_list` / `music_project_save`, plus
+existing track/clip/note, intent and plan tools. Every tool publishes an input and output schema, validates its input,
 and returns an object in `structuredContent` alongside JSON text. Errors are
 reported with `isError=true` and a structured message.
 

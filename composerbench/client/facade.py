@@ -43,6 +43,14 @@ class ComposerBench:
     def capabilities(self) -> dict[str, bool]:
         return self.daw.capabilities().to_dict()
 
+    async def features(self) -> dict:
+        """Capabilities plus the engine's protocol features (starts the engine
+        for real adapters so the answer reflects the actual binary)."""
+        probe = getattr(self.daw, 'features', None)
+        extra = await probe() if probe else {}
+        return {**self.daw.capabilities().to_dict(), 'engine': extra,
+                'adapter': type(self.daw).__name__}
+
     @property
     def handles(self):
         from composerbench.client.handles import Handles
@@ -142,6 +150,33 @@ class ComposerBench:
                                     'notes': list(notes)}])
         return result['results'][0]['added']
 
+    async def set_notes(self, track: str, clip: str | None = None,
+                        notes: Sequence[Note] = ()) -> int:
+        """Replace every note in a clip in one request (one undo step).
+
+        This is the fast path for writing or rewriting a whole part: the
+        engine syncs the clip once instead of once per note.
+        """
+        track = await self._track_ref(track)
+        clip = await self._entity_ref(track, clip, 'clip')
+        tid = (await self.daw.get_track(track)).id
+        resolved = await self.daw.get_clips(tid)
+        if not resolved:
+            raise LookupError(f"no clip on track {track!r}; create one first")
+        if clip is None:
+            if len(resolved) != 1:
+                raise LookupError('track has several clips; name the clip to replace')
+            target = resolved[0]
+        else:
+            key = clip.removeprefix("clip:")
+            target = next((c for c in resolved if c.id == clip or c.id.removeprefix("clip:") == key
+                           or c.name == clip), None)
+            if target is None:
+                raise LookupError(f"clip {clip!r} not found on track {track!r}")
+        result = await self.batch([{'type': 'set_notes', 'track': tid, 'clip': target.id,
+                                    'notes': list(notes)}])
+        return result['results'][0]['notes']
+
     def render(self, request: RenderRequest):
         return self.daw.render(request)
 
@@ -202,6 +237,50 @@ class ComposerBench:
         track = await self._track_ref(track)
         return await self.daw.get_parameters(track, await self._entity_ref(track, device, 'device'))
 
+    async def describe_parameter(self, track: str, device: str, parameter: str):
+        """Range, unit, choices and current meaning of one parameter."""
+        track = await self._track_ref(track)
+        device = await self._entity_ref(track, device, 'device')
+        describe = getattr(self.daw, 'describe_parameter', None)
+        if describe is not None:
+            return await describe(track, device, parameter)
+        from composerbench.params import describe as describe_param, find
+        key, meta = find(await self.daw.get_parameters(track, device), parameter)
+        return {'index': key, **describe_param(meta)}
+
+    async def plugins(self, format_filter: str | None = None, instruments: bool | None = None):
+        """Scanned external plugins (AU/VST3/LV2) the engine can host."""
+        lister = getattr(self.daw, 'list_plugins', None)
+        if lister is None:
+            from composerbench.errors import UnsupportedOperation
+            raise UnsupportedOperation(reason='external plugins need the MAGDA serve adapter')
+        plugs = await lister(format_filter)
+        if instruments is not None:
+            plugs = [p for p in plugs if bool(p.get('isInstrument')) == instruments]
+        return plugs
+
+    async def add_plugin(self, track: str, plugin: str, instrument: bool | None = None):
+        """Host an external plugin on a track, by exact id or unique name."""
+        track_id = await self._track_ref(track)
+        plugs = await self.plugins()
+        hits = [p for p in plugs if plugin in (p.get('id'), p.get('name'))]
+        if not hits:
+            hits = [p for p in plugs if plugin.lower() in str(p.get('name', '')).lower()]
+        if len(hits) != 1:
+            from composerbench.errors import EntityNotFound
+            raise EntityNotFound('plugin', plugin, [p.get('name') for p in hits or plugs][:20])
+        desc = hits[0]
+        as_instrument = bool(desc.get('isInstrument')) if instrument is None else instrument
+        device = await self.daw.add_plugin(track_id, desc['id'], as_instrument=as_instrument)
+        await self.daw.save_project()
+        return {'device_id': device, 'plugin': desc.get('name'), 'format': desc.get('format'),
+                'instrument': as_instrument,
+                'persistent': self.daw.capabilities().plugin_persistence}
+
+    async def save(self):
+        await self.daw.save_project()
+        return {'saved': str(getattr(self.daw, 'project', ''))}
+
     async def batch(self, actions, timeout_seconds: float = 120):
         import asyncio
         from composerbench.agent.actions import preflight, apply
@@ -209,9 +288,18 @@ class ComposerBench:
         if not 0 < timeout_seconds <= 3600: raise ValueError('timeout must be in (0, 3600] seconds')
         async with asyncio.timeout(timeout_seconds):
             async with Transaction(self.daw, self.sidecar, 'batch') as tx:
-                validated = await preflight(self.daw, await self._resolve_actions(actions))
-                results = [await apply(self.daw, a) for a in validated]
-                await self._bind_results(validated, results)
+                # One save for the whole batch instead of one per engine command
+                # (engines without the save flag simply keep saving each time).
+                previous = getattr(self.daw, 'autosave', None)
+                if previous is not None:
+                    self.daw.autosave = False
+                try:
+                    validated = await preflight(self.daw, await self._resolve_actions(actions))
+                    results = [await apply(self.daw, a) for a in validated]
+                    await self._bind_results(validated, results)
+                finally:
+                    if previous is not None:
+                        self.daw.autosave = previous
                 await self.daw.save_project()
                 tx.commit()
                 return {'results': results, 'snapshot_id': tx.snapshot_id,

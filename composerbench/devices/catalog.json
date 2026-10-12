@@ -1,0 +1,3360 @@
+{
+ "version": 1,
+ "generated": "2026-10-12",
+ "sources": [
+  "live engine probe (examples/hyperpop_probe.py)",
+  "magda-core compiled plugin sources (labels; unprobed effects)"
+ ],
+ "aliases": {
+  "reverb": "magda_reverb",
+  "delay": "magda_delay",
+  "chorus": "magda_chorus",
+  "phaser": "magda_phaser",
+  "compressor": "magda_compressor",
+  "4bandEq": "magda_eq",
+  "eq": "magda_eq",
+  "equaliser": "magda_eq",
+  "lowpass": "magda_filter",
+  "pitchShifter": "magda_pitch",
+  "pitchshift": "magda_pitch"
+ },
+ "hosted_plugins_seen": [
+  "BYOD",
+  "ChowMatrix",
+  "Dragonfly Hall Reverb",
+  "Dragonfly Plate Reverb",
+  "Dragonfly Room Reverb",
+  "NeuralAmpModeler",
+  "Shortcircuit XT",
+  "Surge XT",
+  "Surge XT Effects",
+  "sfizz",
+  "sfizz-multi"
+ ],
+ "devices": {
+  "4osc": {
+   "kind": "instrument",
+   "format": "internal",
+   "verified": "live",
+   "summary": "Tracktion FourOsc: 4 oscillators with unison detune/spread, filter, envelopes, built-in FX.",
+   "params": [
+    {
+     "name": "Tune 1",
+     "min": -36.0,
+     "max": 36.0,
+     "default": 0.0
+    },
+    {
+     "name": "Fine Tune 1",
+     "min": -100.0,
+     "max": 100.0,
+     "default": 0.0
+    },
+    {
+     "name": "Level 1",
+     "min": -100.0,
+     "max": 0.0,
+     "default": 0.0
+    },
+    {
+     "name": "Pulse Width 1",
+     "min": 0.01,
+     "max": 0.99,
+     "default": 0.5
+    },
+    {
+     "name": "Detune 1",
+     "min": 0.0,
+     "max": 0.5,
+     "default": 0.0
+    },
+    {
+     "name": "Spread 1",
+     "min": -100.0,
+     "max": 100.0,
+     "default": 0.0
+    },
+    {
+     "name": "Pan 1",
+     "min": -1.0,
+     "max": 1.0,
+     "default": 0.0
+    },
+    {
+     "name": "Tune 2",
+     "min": -36.0,
+     "max": 36.0,
+     "default": 0.0
+    },
+    {
+     "name": "Fine Tune 2",
+     "min": -100.0,
+     "max": 100.0,
+     "default": 0.0
+    },
+    {
+     "name": "Level 2",
+     "min": -100.0,
+     "max": 0.0,
+     "default": 0.0
+    },
+    {
+     "name": "Pulse Width 2",
+     "min": 0.01,
+     "max": 0.99,
+     "default": 0.5
+    },
+    {
+     "name": "Detune 2",
+     "min": 0.0,
+     "max": 0.5,
+     "default": 0.0
+    },
+    {
+     "name": "Spread 2",
+     "min": -100.0,
+     "max": 100.0,
+     "default": 0.0
+    },
+    {
+     "name": "Pan 2",
+     "min": -1.0,
+     "max": 1.0,
+     "default": 0.0
+    },
+    {
+     "name": "Tune 3",
+     "min": -36.0,
+     "max": 36.0,
+     "default": 0.0
+    },
+    {
+     "name": "Fine Tune 3",
+     "min": -100.0,
+     "max": 100.0,
+     "default": 0.0
+    },
+    {
+     "name": "Level 3",
+     "min": -100.0,
+     "max": 0.0,
+     "default": 0.0
+    },
+    {
+     "name": "Pulse Width 3",
+     "min": 0.01,
+     "max": 0.99,
+     "default": 0.5
+    },
+    {
+     "name": "Detune 3",
+     "min": 0.0,
+     "max": 0.5,
+     "default": 0.0
+    },
+    {
+     "name": "Spread 3",
+     "min": -100.0,
+     "max": 100.0,
+     "default": 0.0
+    },
+    {
+     "name": "Pan 3",
+     "min": -1.0,
+     "max": 1.0,
+     "default": 0.0
+    },
+    {
+     "name": "Tune 4",
+     "min": -36.0,
+     "max": 36.0,
+     "default": 0.0
+    },
+    {
+     "name": "Fine Tune 4",
+     "min": -100.0,
+     "max": 100.0,
+     "default": 0.0
+    },
+    {
+     "name": "Level 4",
+     "min": -100.0,
+     "max": 0.0,
+     "default": 0.0
+    },
+    {
+     "name": "Pulse Width 4",
+     "min": 0.01,
+     "max": 0.99,
+     "default": 0.5
+    },
+    {
+     "name": "Detune 4",
+     "min": 0.0,
+     "max": 0.5,
+     "default": 0.0
+    },
+    {
+     "name": "Spread 4",
+     "min": -100.0,
+     "max": 100.0,
+     "default": 0.0
+    },
+    {
+     "name": "Pan 4",
+     "min": -1.0,
+     "max": 1.0,
+     "default": 0.0
+    },
+    {
+     "name": "Rate 1",
+     "min": 0.0,
+     "max": 500.0,
+     "default": 1.0
+    },
+    {
+     "name": "Depth 1",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 1.0
+    },
+    {
+     "name": "Rate 2",
+     "min": 0.0,
+     "max": 500.0,
+     "default": 1.0
+    },
+    {
+     "name": "Depth 2",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 1.0
+    },
+    {
+     "name": "Mod Attack 1",
+     "min": 0.0,
+     "max": 60.0,
+     "default": 0.1
+    },
+    {
+     "name": "Mod Decay 1",
+     "min": 0.0,
+     "max": 60.0,
+     "default": 0.1
+    },
+    {
+     "name": "Mod Sustain 1",
+     "min": 0.0,
+     "max": 100.0,
+     "default": 80.0
+    },
+    {
+     "name": "Mod Release 1",
+     "min": 0.001,
+     "max": 60.0,
+     "default": 0.1
+    },
+    {
+     "name": "Mod Attack 2",
+     "min": 0.0,
+     "max": 60.0,
+     "default": 0.1
+    },
+    {
+     "name": "Mod Decay 2",
+     "min": 0.0,
+     "max": 60.0,
+     "default": 0.1
+    },
+    {
+     "name": "Mod Sustain 2",
+     "min": 0.0,
+     "max": 100.0,
+     "default": 80.0
+    },
+    {
+     "name": "Mod Release 2",
+     "min": 0.001,
+     "max": 60.0,
+     "default": 0.1
+    },
+    {
+     "name": "Amp Attack",
+     "min": 0.001,
+     "max": 60.0,
+     "default": 0.1
+    },
+    {
+     "name": "Amp Decay",
+     "min": 0.001,
+     "max": 60.0,
+     "default": 0.1
+    },
+    {
+     "name": "Amp Sustain",
+     "min": 0.0,
+     "max": 100.0,
+     "default": 80.0
+    },
+    {
+     "name": "Amp Release",
+     "min": 0.001,
+     "max": 60.0,
+     "default": 0.1
+    },
+    {
+     "name": "Amp Velocity",
+     "min": 0.0,
+     "max": 100.0,
+     "default": 100.0
+    },
+    {
+     "name": "Filter Attack",
+     "min": 0.0,
+     "max": 60.0,
+     "default": 0.1
+    },
+    {
+     "name": "Filter Decay",
+     "min": 0.0,
+     "max": 60.0,
+     "default": 0.1
+    },
+    {
+     "name": "Filter Sustain",
+     "min": 0.0,
+     "max": 100.0,
+     "default": 80.0
+    },
+    {
+     "name": "Filter Release",
+     "min": 0.0,
+     "max": 60.0,
+     "default": 0.1
+    },
+    {
+     "name": "Filter Freq",
+     "min": 0.0,
+     "max": 135.076233,
+     "default": 69.0
+    },
+    {
+     "name": "Filter Resonance",
+     "min": 0.0,
+     "max": 100.0,
+     "default": 0.5
+    },
+    {
+     "name": "Filter Amount",
+     "min": -1.0,
+     "max": 1.0,
+     "default": 0.0
+    },
+    {
+     "name": "Filter Key",
+     "min": 0.0,
+     "max": 100.0,
+     "default": 0.0
+    },
+    {
+     "name": "Filter Velocity",
+     "min": 0.0,
+     "max": 100.0,
+     "default": 0.0
+    },
+    {
+     "name": "Distortion",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0
+    },
+    {
+     "name": "Size",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0
+    },
+    {
+     "name": "Damping",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0
+    },
+    {
+     "name": "Width",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0
+    },
+    {
+     "name": "Mix",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0
+    },
+    {
+     "name": "Feedback",
+     "min": -100.0,
+     "max": 0.0,
+     "default": -10.0
+    },
+    {
+     "name": "Crossfeed",
+     "min": -100.0,
+     "max": 0.0,
+     "default": -100.0
+    },
+    {
+     "name": "Mix",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0
+    },
+    {
+     "name": "Speed",
+     "min": 0.1,
+     "max": 10.0,
+     "default": 1.0
+    },
+    {
+     "name": "Depth",
+     "min": 0.1,
+     "max": 20.0,
+     "default": 3.0
+    },
+    {
+     "name": "Width",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.5
+    },
+    {
+     "name": "Mix",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0
+    },
+    {
+     "name": "Legato",
+     "min": 0.0,
+     "max": 500.0,
+     "default": 0.0
+    },
+    {
+     "name": "Level",
+     "min": -100.0,
+     "max": 0.0,
+     "default": 0.0
+    }
+   ]
+  },
+  "Surge XT": {
+   "kind": "instrument",
+   "format": "VST3",
+   "verified": "live (subset)",
+   "summary": "Hosted Surge XT synth (VST3). Big unison supersaws.",
+   "normalized": true,
+   "params": [
+    {
+     "name": "A Filter 1 Type",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.005,
+     "note": "0.005 Off (init patch), 0.03 LP 12 dB, 0.05 LP 24 dB"
+    },
+    {
+     "name": "A Filter 1 Cutoff",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.4846
+    },
+    {
+     "name": "A Filter 1 Resonance",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0
+    },
+    {
+     "name": "A Osc 1 Unison Voices",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.005,
+     "note": "0.45 ~ 7 voices"
+    },
+    {
+     "name": "A Osc 1 Unison Detune",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.1
+    },
+    {
+     "name": "A Amp EG Attack",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0
+    },
+    {
+     "name": "A Amp EG Release",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.25
+    },
+    {
+     "name": "A Osc 2 Mute",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 1.0
+    },
+    {
+     "name": "A Osc 3 Mute",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 1.0
+    }
+   ],
+   "notes": "Hosted VST3. Parameters are normalised 0..1 and many are not declared discrete. A Filter 1 Type 0.03 = 'LP 12 dB' (the init patch has the filter Off). Allow ~4 s after loading before setting parameters."
+  },
+  "magda_bell": {
+   "kind": "instrument",
+   "format": "internal",
+   "verified": "live",
+   "summary": "Struck bell model.",
+   "params": [
+    {
+     "name": "strike_position",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.3
+    },
+    {
+     "name": "strike_tone",
+     "min": 500.0,
+     "max": 12000.0,
+     "default": 7000.000488,
+     "unit": "Hz"
+    },
+    {
+     "name": "strike_sharpness",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.25
+    },
+    {
+     "name": "decay",
+     "min": 300.0,
+     "max": 40000.0,
+     "default": 8000.0,
+     "unit": "ms"
+    },
+    {
+     "name": "Gain",
+     "min": -24.0,
+     "max": 6.0,
+     "default": -5.999999,
+     "unit": "dB"
+    }
+   ],
+   "notes": "Physical bell model; decay in ms."
+  },
+  "magda_clap": {
+   "kind": "instrument",
+   "format": "internal",
+   "verified": "live",
+   "summary": "Synth clap: flammed noise bursts with tail.",
+   "params": [
+    {
+     "name": "flam_tone",
+     "min": 400.0,
+     "max": 4000.0,
+     "default": 1000.0
+    },
+    {
+     "name": "flam_spread",
+     "min": 2.0,
+     "max": 30.0,
+     "default": 9.0,
+     "unit": "ms"
+    },
+    {
+     "name": "flam_decay",
+     "min": 20.0,
+     "max": 1500.0,
+     "default": 200.0,
+     "unit": "ms"
+    },
+    {
+     "name": "flam_tail",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.4
+    },
+    {
+     "name": "shape_hp_freq",
+     "min": 500.0,
+     "max": 8000.0,
+     "default": 2000.0
+    },
+    {
+     "name": "shape_hp_reso",
+     "min": 0.5,
+     "max": 10.0,
+     "default": 1.0
+    },
+    {
+     "name": "shape_drive",
+     "min": 1.0,
+     "max": 20.0,
+     "default": 1.0
+    },
+    {
+     "name": "flam_curve",
+     "min": -50.0,
+     "max": 50.0,
+     "default": 0.0
+    },
+    {
+     "name": "Gain",
+     "min": -24.0,
+     "max": 6.0,
+     "default": -5.999999,
+     "unit": "dB"
+    }
+   ]
+  },
+  "magda_djembe": {
+   "kind": "instrument",
+   "format": "internal",
+   "verified": "allowlist",
+   "summary": "Synth djembe.",
+   "params": []
+  },
+  "magda_fm": {
+   "kind": "instrument",
+   "format": "internal",
+   "verified": "live",
+   "summary": "4-operator FM synth with a full modulation matrix. Bells, keys, metallic leads, noise.",
+   "params": [
+    {
+     "name": "M11",
+     "min": 0.0,
+     "max": 8.0,
+     "default": 0.0
+    },
+    {
+     "name": "M12",
+     "min": 0.0,
+     "max": 8.0,
+     "default": 0.0
+    },
+    {
+     "name": "M13",
+     "min": 0.0,
+     "max": 8.0,
+     "default": 0.0
+    },
+    {
+     "name": "M14",
+     "min": 0.0,
+     "max": 8.0,
+     "default": 0.0
+    },
+    {
+     "name": "M21",
+     "min": 0.0,
+     "max": 8.0,
+     "default": 2.0
+    },
+    {
+     "name": "M22",
+     "min": 0.0,
+     "max": 8.0,
+     "default": 0.0
+    },
+    {
+     "name": "M23",
+     "min": 0.0,
+     "max": 8.0,
+     "default": 0.0
+    },
+    {
+     "name": "M24",
+     "min": 0.0,
+     "max": 8.0,
+     "default": 0.0
+    },
+    {
+     "name": "M31",
+     "min": 0.0,
+     "max": 8.0,
+     "default": 0.0
+    },
+    {
+     "name": "M32",
+     "min": 0.0,
+     "max": 8.0,
+     "default": 0.0
+    },
+    {
+     "name": "M33",
+     "min": 0.0,
+     "max": 8.0,
+     "default": 0.0
+    },
+    {
+     "name": "M34",
+     "min": 0.0,
+     "max": 8.0,
+     "default": 0.0
+    },
+    {
+     "name": "M41",
+     "min": 0.0,
+     "max": 8.0,
+     "default": 0.0
+    },
+    {
+     "name": "M42",
+     "min": 0.0,
+     "max": 8.0,
+     "default": 0.0
+    },
+    {
+     "name": "M43",
+     "min": 0.0,
+     "max": 8.0,
+     "default": 0.0
+    },
+    {
+     "name": "M44",
+     "min": 0.0,
+     "max": 8.0,
+     "default": 0.0
+    },
+    {
+     "name": "Op1 Ratio",
+     "min": 0.25,
+     "max": 16.0,
+     "default": 1.0
+    },
+    {
+     "name": "Op2 Ratio",
+     "min": 0.25,
+     "max": 16.0,
+     "default": 2.0
+    },
+    {
+     "name": "Op3 Ratio",
+     "min": 0.25,
+     "max": 16.0,
+     "default": 1.0
+    },
+    {
+     "name": "Op4 Ratio",
+     "min": 0.25,
+     "max": 16.0,
+     "default": 1.0
+    },
+    {
+     "name": "Op1 Level",
+     "min": -60.0,
+     "max": 6.0,
+     "default": 0.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Op2 Level",
+     "min": -60.0,
+     "max": 6.0,
+     "default": -60.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Op3 Level",
+     "min": -60.0,
+     "max": 6.0,
+     "default": -60.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Op4 Level",
+     "min": -60.0,
+     "max": 6.0,
+     "default": -60.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Amp Attack",
+     "min": 1.0,
+     "max": 2000.0,
+     "default": 5.0,
+     "unit": "ms"
+    },
+    {
+     "name": "Amp Decay",
+     "min": 1.0,
+     "max": 2000.0,
+     "default": 300.0,
+     "unit": "ms"
+    },
+    {
+     "name": "Amp Sustain",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.5
+    },
+    {
+     "name": "Amp Release",
+     "min": 1.0,
+     "max": 4000.0,
+     "default": 400.0,
+     "unit": "ms"
+    },
+    {
+     "name": "Op1 Wave",
+     "min": 0.0,
+     "max": 4.0,
+     "default": 0.0,
+     "choices": [
+      "Sine",
+      "Triangle",
+      "Saw",
+      "Square",
+      "Noise"
+     ]
+    },
+    {
+     "name": "Op2 Wave",
+     "min": 0.0,
+     "max": 4.0,
+     "default": 0.0,
+     "choices": [
+      "Sine",
+      "Triangle",
+      "Saw",
+      "Square",
+      "Noise"
+     ]
+    },
+    {
+     "name": "Op3 Wave",
+     "min": 0.0,
+     "max": 4.0,
+     "default": 0.0,
+     "choices": [
+      "Sine",
+      "Triangle",
+      "Saw",
+      "Square",
+      "Noise"
+     ]
+    },
+    {
+     "name": "Op4 Wave",
+     "min": 0.0,
+     "max": 4.0,
+     "default": 0.0,
+     "choices": [
+      "Sine",
+      "Triangle",
+      "Saw",
+      "Square",
+      "Noise"
+     ]
+    },
+    {
+     "name": "Glide",
+     "min": 0.0,
+     "max": 2000.0,
+     "default": 0.0,
+     "unit": "ms"
+    },
+    {
+     "name": "Vel Amount",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 1.0
+    },
+    {
+     "name": "Op1 Reset",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0,
+     "choices": [
+      "Off",
+      "On"
+     ]
+    },
+    {
+     "name": "Op2 Reset",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0,
+     "choices": [
+      "Off",
+      "On"
+     ]
+    },
+    {
+     "name": "Op3 Reset",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0,
+     "choices": [
+      "Off",
+      "On"
+     ]
+    },
+    {
+     "name": "Op4 Reset",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0,
+     "choices": [
+      "Off",
+      "On"
+     ]
+    },
+    {
+     "name": "Op1 Enable",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 1.0,
+     "choices": [
+      "Off",
+      "On"
+     ]
+    },
+    {
+     "name": "Op2 Enable",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 1.0,
+     "choices": [
+      "Off",
+      "On"
+     ]
+    },
+    {
+     "name": "Op3 Enable",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 1.0,
+     "choices": [
+      "Off",
+      "On"
+     ]
+    },
+    {
+     "name": "Op4 Enable",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 1.0,
+     "choices": [
+      "Off",
+      "On"
+     ]
+    },
+    {
+     "name": "Gain",
+     "min": -24.0,
+     "max": 6.0,
+     "default": -5.999999,
+     "unit": "dB"
+    },
+    {
+     "name": "Voice Mode",
+     "min": 0.0,
+     "max": 2.0,
+     "default": 0.0,
+     "choices": [
+      "Poly",
+      "Mono",
+      "Legato"
+     ]
+    }
+   ],
+   "notes": "M<src><dst> is the modulation amount from operator src into operator dst; Op1 is the carrier by default. Op Wave 'Noise' turns an operator into a noise source."
+  },
+  "magda_hat": {
+   "kind": "instrument",
+   "format": "internal",
+   "verified": "live",
+   "summary": "Synth hi-hat: metallic ring partials + high-passed noise. Long decays make open hats/crashes.",
+   "params": [
+    {
+     "name": "ring_level",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.6
+    },
+    {
+     "name": "ring_pitch",
+     "min": 200.0,
+     "max": 2000.0,
+     "default": 540.0
+    },
+    {
+     "name": "ring_spread",
+     "min": 0.5,
+     "max": 2.0,
+     "default": 1.0
+    },
+    {
+     "name": "ring_decay",
+     "min": 0.01,
+     "max": 2000.0,
+     "default": 10.0,
+     "unit": "ms"
+    },
+    {
+     "name": "noise_level",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.5
+    },
+    {
+     "name": "noise_hp_freq",
+     "min": 800.0,
+     "max": 18000.0,
+     "default": 8000.0
+    },
+    {
+     "name": "noise_decay",
+     "min": 5.0,
+     "max": 2000.0,
+     "default": 100.0,
+     "unit": "ms"
+    },
+    {
+     "name": "ring_curve",
+     "min": -50.0,
+     "max": 50.0,
+     "default": 0.0
+    },
+    {
+     "name": "noise_curve",
+     "min": -50.0,
+     "max": 50.0,
+     "default": 0.0
+    },
+    {
+     "name": "noise_hp_reso",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0
+    },
+    {
+     "name": "noise_sat",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0
+    },
+    {
+     "name": "Gain",
+     "min": -24.0,
+     "max": 6.0,
+     "default": -5.999999,
+     "unit": "dB"
+    }
+   ]
+  },
+  "magda_kick": {
+   "kind": "instrument",
+   "format": "internal",
+   "verified": "live",
+   "summary": "Synth kick: transient + pitched body + click. Short decay = punchy, long = 808 boom.",
+   "params": [
+    {
+     "name": "transient_level",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.5
+    },
+    {
+     "name": "transient_pitch",
+     "min": 60.0,
+     "max": 1000.0,
+     "default": 220.0
+    },
+    {
+     "name": "transient_sweep",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.5
+    },
+    {
+     "name": "transient_decay",
+     "min": 1.0,
+     "max": 100.0,
+     "default": 8.0,
+     "unit": "ms"
+    },
+    {
+     "name": "body_pitch",
+     "min": 30.0,
+     "max": 120.0,
+     "default": 55.0
+    },
+    {
+     "name": "body_snap",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.5
+    },
+    {
+     "name": "body_snap_time",
+     "min": 5.0,
+     "max": 1000.0,
+     "default": 60.0,
+     "unit": "ms"
+    },
+    {
+     "name": "body_attack",
+     "min": 0.0,
+     "max": 400.0,
+     "default": 0.0,
+     "unit": "ms"
+    },
+    {
+     "name": "body_decay",
+     "min": 1.0,
+     "max": 4000.0,
+     "default": 500.0,
+     "unit": "ms"
+    },
+    {
+     "name": "body_drive",
+     "min": 1.0,
+     "max": 10.0,
+     "default": 2.0
+    },
+    {
+     "name": "click_level",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.3
+    },
+    {
+     "name": "click_tone",
+     "min": 500.0,
+     "max": 12000.0,
+     "default": 2000.0
+    },
+    {
+     "name": "body_curve",
+     "min": -50.0,
+     "max": 50.0,
+     "default": 0.0
+    },
+    {
+     "name": "transient_curve",
+     "min": -50.0,
+     "max": 50.0,
+     "default": 0.0
+    },
+    {
+     "name": "Gain",
+     "min": -24.0,
+     "max": 6.0,
+     "default": -5.999999,
+     "unit": "dB"
+    }
+   ]
+  },
+  "magda_marimba": {
+   "kind": "instrument",
+   "format": "internal",
+   "verified": "live",
+   "summary": "Struck marimba bar model.",
+   "params": [
+    {
+     "name": "strike_position",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.3
+    },
+    {
+     "name": "strike_tone",
+     "min": 500.0,
+     "max": 12000.0,
+     "default": 7000.000488,
+     "unit": "Hz"
+    },
+    {
+     "name": "strike_sharpness",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.25
+    },
+    {
+     "name": "decay",
+     "min": 50.0,
+     "max": 2000.0,
+     "default": 100.0,
+     "unit": "ms"
+    },
+    {
+     "name": "Gain",
+     "min": -24.0,
+     "max": 6.0,
+     "default": -5.999999,
+     "unit": "dB"
+    }
+   ]
+  },
+  "magda_polysynth": {
+   "kind": "instrument",
+   "format": "internal",
+   "verified": "live",
+   "summary": "4-oscillator subtractive synth: sine/saw/square/triangle, multimode filter with envelope and velocity amount, mono/legato glide. Bass, leads, pads, plucks.",
+   "params": [
+    {
+     "name": "Osc 1 Wave",
+     "min": 0.0,
+     "max": 3.0,
+     "default": 1.0,
+     "choices": [
+      "Sine",
+      "Saw",
+      "Square",
+      "Triangle"
+     ]
+    },
+    {
+     "name": "Osc 1 Level",
+     "min": -60.0,
+     "max": 6.0,
+     "default": -11.999999,
+     "unit": "dB"
+    },
+    {
+     "name": "Osc 1 Coarse",
+     "min": -24.0,
+     "max": 24.0,
+     "default": 0.0,
+     "unit": "st"
+    },
+    {
+     "name": "Osc 1 Fine",
+     "min": -100.0,
+     "max": 100.0,
+     "default": 0.0,
+     "unit": "cents"
+    },
+    {
+     "name": "Osc 2 Wave",
+     "min": 0.0,
+     "max": 3.0,
+     "default": 1.0,
+     "choices": [
+      "Sine",
+      "Saw",
+      "Square",
+      "Triangle"
+     ]
+    },
+    {
+     "name": "Osc 2 Level",
+     "min": -60.0,
+     "max": 6.0,
+     "default": -60.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Osc 2 Coarse",
+     "min": -24.0,
+     "max": 24.0,
+     "default": 0.0,
+     "unit": "st"
+    },
+    {
+     "name": "Osc 2 Fine",
+     "min": -100.0,
+     "max": 100.0,
+     "default": 0.0,
+     "unit": "cents"
+    },
+    {
+     "name": "Osc 3 Wave",
+     "min": 0.0,
+     "max": 3.0,
+     "default": 1.0,
+     "choices": [
+      "Sine",
+      "Saw",
+      "Square",
+      "Triangle"
+     ]
+    },
+    {
+     "name": "Osc 3 Level",
+     "min": -60.0,
+     "max": 6.0,
+     "default": -60.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Osc 3 Coarse",
+     "min": -24.0,
+     "max": 24.0,
+     "default": 0.0,
+     "unit": "st"
+    },
+    {
+     "name": "Osc 3 Fine",
+     "min": -100.0,
+     "max": 100.0,
+     "default": 0.0,
+     "unit": "cents"
+    },
+    {
+     "name": "Osc 4 Wave",
+     "min": 0.0,
+     "max": 3.0,
+     "default": 1.0,
+     "choices": [
+      "Sine",
+      "Saw",
+      "Square",
+      "Triangle"
+     ]
+    },
+    {
+     "name": "Osc 4 Level",
+     "min": -60.0,
+     "max": 6.0,
+     "default": -60.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Osc 4 Coarse",
+     "min": -24.0,
+     "max": 24.0,
+     "default": 0.0,
+     "unit": "st"
+    },
+    {
+     "name": "Osc 4 Fine",
+     "min": -100.0,
+     "max": 100.0,
+     "default": 0.0,
+     "unit": "cents"
+    },
+    {
+     "name": "Filter Type",
+     "min": 0.0,
+     "max": 3.0,
+     "default": 0.0,
+     "choices": [
+      "Lowpass",
+      "Highpass",
+      "Bandpass",
+      "Notch"
+     ]
+    },
+    {
+     "name": "Cutoff",
+     "min": 50.0,
+     "max": 18000.0,
+     "default": 3000.000244,
+     "unit": "Hz"
+    },
+    {
+     "name": "Resonance",
+     "min": 0.0,
+     "max": 0.95,
+     "default": 0.3
+    },
+    {
+     "name": "Filter Env",
+     "min": -4.0,
+     "max": 4.0,
+     "default": 0.0,
+     "unit": "oct"
+    },
+    {
+     "name": "Filter Attack",
+     "min": 1.0,
+     "max": 2000.0,
+     "default": 5.0,
+     "unit": "ms"
+    },
+    {
+     "name": "Filter Decay",
+     "min": 1.0,
+     "max": 2000.0,
+     "default": 200.0,
+     "unit": "ms"
+    },
+    {
+     "name": "Filter Sustain",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.7
+    },
+    {
+     "name": "Filter Release",
+     "min": 1.0,
+     "max": 4000.0,
+     "default": 400.0,
+     "unit": "ms"
+    },
+    {
+     "name": "Amp Attack",
+     "min": 1.0,
+     "max": 2000.0,
+     "default": 5.0,
+     "unit": "ms"
+    },
+    {
+     "name": "Amp Decay",
+     "min": 1.0,
+     "max": 2000.0,
+     "default": 200.0,
+     "unit": "ms"
+    },
+    {
+     "name": "Amp Sustain",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.7
+    },
+    {
+     "name": "Amp Release",
+     "min": 1.0,
+     "max": 4000.0,
+     "default": 400.0,
+     "unit": "ms"
+    },
+    {
+     "name": "Filter Drive",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0
+    },
+    {
+     "name": "Filter Slope",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0,
+     "choices": [
+      "12 dB",
+      "24 dB"
+     ]
+    },
+    {
+     "name": "Bend Range",
+     "min": 0.0,
+     "max": 24.0,
+     "default": 2.0,
+     "unit": "st"
+    },
+    {
+     "name": "Voice Mode",
+     "min": 0.0,
+     "max": 2.0,
+     "default": 0.0,
+     "choices": [
+      "Poly",
+      "Mono",
+      "Legato"
+     ]
+    },
+    {
+     "name": "Glide",
+     "min": 0.0,
+     "max": 2000.0,
+     "default": 0.0,
+     "unit": "ms"
+    },
+    {
+     "name": "Osc 1 Reset",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0,
+     "choices": [
+      "Off",
+      "On"
+     ]
+    },
+    {
+     "name": "Osc 2 Reset",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0,
+     "choices": [
+      "Off",
+      "On"
+     ]
+    },
+    {
+     "name": "Osc 3 Reset",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0,
+     "choices": [
+      "Off",
+      "On"
+     ]
+    },
+    {
+     "name": "Osc 4 Reset",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0,
+     "choices": [
+      "Off",
+      "On"
+     ]
+    },
+    {
+     "name": "Vel Amp",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 1.0
+    },
+    {
+     "name": "Vel Filter",
+     "min": 0.0,
+     "max": 6.0,
+     "default": 0.0,
+     "unit": "oct"
+    },
+    {
+     "name": "Osc 1 Enable",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 1.0,
+     "choices": [
+      "Off",
+      "On"
+     ]
+    },
+    {
+     "name": "Osc 2 Enable",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 1.0,
+     "choices": [
+      "Off",
+      "On"
+     ]
+    },
+    {
+     "name": "Osc 3 Enable",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 1.0,
+     "choices": [
+      "Off",
+      "On"
+     ]
+    },
+    {
+     "name": "Osc 4 Enable",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 1.0,
+     "choices": [
+      "Off",
+      "On"
+     ]
+    },
+    {
+     "name": "Output",
+     "min": -60.0,
+     "max": 6.0,
+     "default": 0.0,
+     "unit": "dB"
+    }
+   ],
+   "notes": "Voice Mode 'Legato' + Glide (ms) slides between overlapping notes. Vel Filter (octaves) lets note velocity open the filter: the only way to sweep a filter without automation on protocol 2."
+  },
+  "magda_snare": {
+   "kind": "instrument",
+   "format": "internal",
+   "verified": "live",
+   "summary": "Synth snare: transient, tuned body and filtered noise rattle.",
+   "params": [
+    {
+     "name": "transient_level",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.5
+    },
+    {
+     "name": "transient_pitch",
+     "min": 100.0,
+     "max": 2000.0,
+     "default": 400.0
+    },
+    {
+     "name": "transient_sweep",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.5
+    },
+    {
+     "name": "transient_decay",
+     "min": 1.0,
+     "max": 100.0,
+     "default": 10.0,
+     "unit": "ms"
+    },
+    {
+     "name": "transient_tone",
+     "min": 1000.0,
+     "max": 12000.0,
+     "default": 4000.0
+    },
+    {
+     "name": "body_tune",
+     "min": 100.0,
+     "max": 400.0,
+     "default": 180.0
+    },
+    {
+     "name": "body_snap",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.25
+    },
+    {
+     "name": "body_snap_time",
+     "min": 2.0,
+     "max": 80.0,
+     "default": 12.000001,
+     "unit": "ms"
+    },
+    {
+     "name": "body_attack",
+     "min": 0.0,
+     "max": 100.0,
+     "default": 0.0,
+     "unit": "ms"
+    },
+    {
+     "name": "body_decay",
+     "min": 1.0,
+     "max": 1500.0,
+     "default": 180.0,
+     "unit": "ms"
+    },
+    {
+     "name": "rattle_snappy",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.6
+    },
+    {
+     "name": "rattle_tone",
+     "min": 800.0,
+     "max": 12000.0,
+     "default": 3000.0
+    },
+    {
+     "name": "rattle_hp_freq",
+     "min": 20.0,
+     "max": 6000.0,
+     "default": 300.0
+    },
+    {
+     "name": "rattle_hp_reso",
+     "min": 0.5,
+     "max": 10.0,
+     "default": 0.7
+    },
+    {
+     "name": "rattle_decay",
+     "min": 1.0,
+     "max": 1500.0,
+     "default": 200.000015,
+     "unit": "ms"
+    },
+    {
+     "name": "rattle_drive",
+     "min": 1.0,
+     "max": 20.0,
+     "default": 1.0
+    },
+    {
+     "name": "body_curve",
+     "min": -50.0,
+     "max": 50.0,
+     "default": 0.0
+    },
+    {
+     "name": "transient_curve",
+     "min": -50.0,
+     "max": 50.0,
+     "default": 0.0
+    },
+    {
+     "name": "rattle_curve",
+     "min": -50.0,
+     "max": 50.0,
+     "default": 0.0
+    },
+    {
+     "name": "Gain",
+     "min": -24.0,
+     "max": 6.0,
+     "default": -5.999999,
+     "unit": "dB"
+    }
+   ]
+  },
+  "magda_tom": {
+   "kind": "instrument",
+   "format": "internal",
+   "verified": "live",
+   "summary": "Synth tom with pitch bend; short and bent it makes zaps.",
+   "params": [
+    {
+     "name": "body_tune",
+     "min": 50.0,
+     "max": 400.0,
+     "default": 120.0
+    },
+    {
+     "name": "body_bend",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.4
+    },
+    {
+     "name": "body_attack",
+     "min": 0.0,
+     "max": 100.0,
+     "default": 0.0,
+     "unit": "ms"
+    },
+    {
+     "name": "body_decay",
+     "min": 5.0,
+     "max": 2000.0,
+     "default": 400.0,
+     "unit": "ms"
+    },
+    {
+     "name": "noise_level",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.3
+    },
+    {
+     "name": "noise_tone",
+     "min": 200.0,
+     "max": 12000.0,
+     "default": 1500.0
+    },
+    {
+     "name": "noise_decay",
+     "min": 5.0,
+     "max": 1000.0,
+     "default": 60.0,
+     "unit": "ms"
+    },
+    {
+     "name": "body_curve",
+     "min": -50.0,
+     "max": 50.0,
+     "default": 0.0
+    },
+    {
+     "name": "noise_curve",
+     "min": -50.0,
+     "max": 50.0,
+     "default": 0.0
+    },
+    {
+     "name": "Gain",
+     "min": -24.0,
+     "max": 6.0,
+     "default": -5.999999,
+     "unit": "dB"
+    }
+   ]
+  },
+  "magda_bitcrusher": {
+   "kind": "effect",
+   "format": "internal",
+   "verified": "live",
+   "summary": "Sample-rate and bit-depth reduction with drive and tone.",
+   "params": [
+    {
+     "name": "Rate",
+     "min": 100.0,
+     "max": 48000.0,
+     "default": 8000.0,
+     "unit": "Hz"
+    },
+    {
+     "name": "Bits",
+     "min": 1.0,
+     "max": 16.0,
+     "default": 8.0
+    },
+    {
+     "name": "Drive",
+     "min": 0.0,
+     "max": 24.0,
+     "default": 0.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Tone",
+     "min": 200.0,
+     "max": 20000.0,
+     "default": 20000.001953,
+     "unit": "Hz"
+    },
+    {
+     "name": "Mix",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 1.0
+    },
+    {
+     "name": "Output",
+     "min": -24.0,
+     "max": 12.0,
+     "default": 0.0,
+     "unit": "dB"
+    }
+   ]
+  },
+  "magda_chorus": {
+   "kind": "effect",
+   "format": "internal",
+   "verified": "live",
+   "summary": "Chorus, 1-3 voices, optional tempo sync.",
+   "params": [
+    {
+     "name": "Voices",
+     "min": 0.0,
+     "max": 2.0,
+     "default": 1.0,
+     "choices": [
+      "1",
+      "2",
+      "3"
+     ]
+    },
+    {
+     "name": "Sync",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0,
+     "choices": [
+      "Off",
+      "On"
+     ]
+    },
+    {
+     "name": "Rate",
+     "min": 0.05,
+     "max": 10.0,
+     "default": 0.5,
+     "unit": "Hz"
+    },
+    {
+     "name": "Division",
+     "min": 0.0,
+     "max": 13.0,
+     "default": 8.0,
+     "choices": [
+      "1/32",
+      "1/16T",
+      "1/16",
+      "1/8T",
+      "1/16.",
+      "1/8",
+      "1/4T",
+      "1/8.",
+      "1/4",
+      "1/2T",
+      "1/4.",
+      "1/2",
+      "1/2.",
+      "1/1"
+     ]
+    },
+    {
+     "name": "Depth",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.5
+    },
+    {
+     "name": "Feedback",
+     "min": -0.9,
+     "max": 0.9,
+     "default": 0.0
+    },
+    {
+     "name": "Mix",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.5
+    },
+    {
+     "name": "Width",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.5
+    }
+   ]
+  },
+  "magda_clipper": {
+   "kind": "effect",
+   "format": "internal",
+   "verified": "live",
+   "summary": "Clipper: hard/soft/tanh/hyperbolic/sine.",
+   "params": [
+    {
+     "name": "Drive",
+     "min": 0.0,
+     "max": 24.0,
+     "default": 0.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Mode",
+     "min": 0.0,
+     "max": 4.0,
+     "default": 0.0,
+     "choices": [
+      "Hard",
+      "Soft",
+      "Tanh",
+      "Hyperbolic",
+      "Sine"
+     ]
+    },
+    {
+     "name": "Output",
+     "min": -24.0,
+     "max": 12.0,
+     "default": 0.0,
+     "unit": "dB"
+    }
+   ]
+  },
+  "magda_compressor": {
+   "kind": "effect",
+   "format": "internal",
+   "verified": "live",
+   "summary": "Compressor (Clean or Glue engine) with sidechain HPF and parallel mix.",
+   "params": [
+    {
+     "name": "Engine",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0,
+     "choices": [
+      "Clean",
+      "Glue"
+     ]
+    },
+    {
+     "name": "Threshold",
+     "min": -60.0,
+     "max": 0.0,
+     "default": -18.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Ratio",
+     "min": 1.0,
+     "max": 50.0,
+     "default": 4.0
+    },
+    {
+     "name": "Attack",
+     "min": 0.1,
+     "max": 200.0,
+     "default": 10.000001,
+     "unit": "ms"
+    },
+    {
+     "name": "Release",
+     "min": 5.0,
+     "max": 1000.0,
+     "default": 120.0,
+     "unit": "ms"
+    },
+    {
+     "name": "Knee",
+     "min": 0.0,
+     "max": 24.0,
+     "default": 6.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Makeup",
+     "min": 0.0,
+     "max": 24.0,
+     "default": 0.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Mix",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 1.0
+    },
+    {
+     "name": "Output",
+     "min": -24.0,
+     "max": 12.0,
+     "default": 0.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Detector",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0,
+     "choices": [
+      "Peak",
+      "RMS"
+     ]
+    },
+    {
+     "name": "Link",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 1.0
+    },
+    {
+     "name": "SC HPF",
+     "min": 20.0,
+     "max": 500.0,
+     "default": 20.0,
+     "unit": "Hz"
+    },
+    {
+     "name": "FBFF",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.5
+    },
+    {
+     "name": "Style",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0,
+     "choices": [
+      "Pre",
+      "Post"
+     ]
+    },
+    {
+     "name": "Autogain",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0,
+     "choices": [
+      "Off",
+      "On"
+     ]
+    }
+   ]
+  },
+  "magda_delay": {
+   "kind": "effect",
+   "format": "internal",
+   "verified": "live",
+   "summary": "Stereo delay with tempo sync (Division) and ping-pong (Cross).",
+   "params": [
+    {
+     "name": "Time",
+     "min": 1.0,
+     "max": 2000.0,
+     "default": 250.0,
+     "unit": "ms"
+    },
+    {
+     "name": "Division",
+     "min": 0.0,
+     "max": 13.0,
+     "default": 8.0,
+     "choices": [
+      "1/32",
+      "1/16T",
+      "1/16",
+      "1/8T",
+      "1/16.",
+      "1/8",
+      "1/4T",
+      "1/8.",
+      "1/4",
+      "1/2T",
+      "1/4.",
+      "1/2",
+      "1/2.",
+      "1/1"
+     ]
+    },
+    {
+     "name": "Sync",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0,
+     "choices": [
+      "Off",
+      "On"
+     ]
+    },
+    {
+     "name": "Feedback",
+     "min": 0.0,
+     "max": 0.95,
+     "default": 0.45
+    },
+    {
+     "name": "Mix",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.35
+    },
+    {
+     "name": "Tone",
+     "min": -1.0,
+     "max": 1.0,
+     "default": 0.0
+    },
+    {
+     "name": "Cross",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0
+    }
+   ]
+  },
+  "magda_dimension": {
+   "kind": "effect",
+   "format": "internal",
+   "verified": "source",
+   "summary": "Stereo widener: Dimension, Haas or M/S.",
+   "params": [
+    {
+     "name": "Amount",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.5
+    },
+    {
+     "name": "Rate",
+     "min": 0.05,
+     "max": 4.0,
+     "default": 0.5,
+     "unit": "Hz"
+    },
+    {
+     "name": "Width",
+     "min": 0.0,
+     "max": 200.0,
+     "default": 100.0
+    },
+    {
+     "name": "Mix",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 1.0
+    },
+    {
+     "name": "Output",
+     "min": -24.0,
+     "max": 12.0,
+     "default": 0.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Engine",
+     "min": 0.0,
+     "max": 2.0,
+     "default": 0.0,
+     "choices": [
+      "Dimension",
+      "Haas",
+      "M/S"
+     ]
+    }
+   ]
+  },
+  "magda_eq": {
+   "kind": "effect",
+   "format": "internal",
+   "verified": "live",
+   "summary": "8-band parametric EQ (HP/shelves/bell/LP/notch).",
+   "params": [
+    {
+     "name": "Band 1 Enabled",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0
+    },
+    {
+     "name": "Band 1 Type",
+     "min": 0.0,
+     "max": 5.0,
+     "default": 2.0,
+     "choices": [
+      "HP",
+      "LowShelf",
+      "Bell",
+      "HighShelf",
+      "LP",
+      "Notch"
+     ]
+    },
+    {
+     "name": "Band 1 Freq",
+     "min": 20.0,
+     "max": 20000.0,
+     "default": 29.999998,
+     "unit": "Hz"
+    },
+    {
+     "name": "Band 1 Gain",
+     "min": -24.0,
+     "max": 24.0,
+     "default": 0.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Band 1 Q",
+     "min": 0.1,
+     "max": 10.0,
+     "default": 1.0
+    },
+    {
+     "name": "Band 2 Enabled",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0
+    },
+    {
+     "name": "Band 2 Type",
+     "min": 0.0,
+     "max": 5.0,
+     "default": 2.0,
+     "choices": [
+      "HP",
+      "LowShelf",
+      "Bell",
+      "HighShelf",
+      "LP",
+      "Notch"
+     ]
+    },
+    {
+     "name": "Band 2 Freq",
+     "min": 20.0,
+     "max": 20000.0,
+     "default": 100.0,
+     "unit": "Hz"
+    },
+    {
+     "name": "Band 2 Gain",
+     "min": -24.0,
+     "max": 24.0,
+     "default": 0.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Band 2 Q",
+     "min": 0.1,
+     "max": 10.0,
+     "default": 1.0
+    },
+    {
+     "name": "Band 3 Enabled",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0
+    },
+    {
+     "name": "Band 3 Type",
+     "min": 0.0,
+     "max": 5.0,
+     "default": 2.0,
+     "choices": [
+      "HP",
+      "LowShelf",
+      "Bell",
+      "HighShelf",
+      "LP",
+      "Notch"
+     ]
+    },
+    {
+     "name": "Band 3 Freq",
+     "min": 20.0,
+     "max": 20000.0,
+     "default": 250.000015,
+     "unit": "Hz"
+    },
+    {
+     "name": "Band 3 Gain",
+     "min": -24.0,
+     "max": 24.0,
+     "default": 0.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Band 3 Q",
+     "min": 0.1,
+     "max": 10.0,
+     "default": 1.0
+    },
+    {
+     "name": "Band 4 Enabled",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0
+    },
+    {
+     "name": "Band 4 Type",
+     "min": 0.0,
+     "max": 5.0,
+     "default": 2.0,
+     "choices": [
+      "HP",
+      "LowShelf",
+      "Bell",
+      "HighShelf",
+      "LP",
+      "Notch"
+     ]
+    },
+    {
+     "name": "Band 4 Freq",
+     "min": 20.0,
+     "max": 20000.0,
+     "default": 800.0,
+     "unit": "Hz"
+    },
+    {
+     "name": "Band 4 Gain",
+     "min": -24.0,
+     "max": 24.0,
+     "default": 0.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Band 4 Q",
+     "min": 0.1,
+     "max": 10.0,
+     "default": 1.0
+    },
+    {
+     "name": "Band 5 Enabled",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0
+    },
+    {
+     "name": "Band 5 Type",
+     "min": 0.0,
+     "max": 5.0,
+     "default": 2.0,
+     "choices": [
+      "HP",
+      "LowShelf",
+      "Bell",
+      "HighShelf",
+      "LP",
+      "Notch"
+     ]
+    },
+    {
+     "name": "Band 5 Freq",
+     "min": 20.0,
+     "max": 20000.0,
+     "default": 2000.000122,
+     "unit": "Hz"
+    },
+    {
+     "name": "Band 5 Gain",
+     "min": -24.0,
+     "max": 24.0,
+     "default": 0.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Band 5 Q",
+     "min": 0.1,
+     "max": 10.0,
+     "default": 1.0
+    },
+    {
+     "name": "Band 6 Enabled",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0
+    },
+    {
+     "name": "Band 6 Type",
+     "min": 0.0,
+     "max": 5.0,
+     "default": 2.0,
+     "choices": [
+      "HP",
+      "LowShelf",
+      "Bell",
+      "HighShelf",
+      "LP",
+      "Notch"
+     ]
+    },
+    {
+     "name": "Band 6 Freq",
+     "min": 20.0,
+     "max": 20000.0,
+     "default": 5000.000488,
+     "unit": "Hz"
+    },
+    {
+     "name": "Band 6 Gain",
+     "min": -24.0,
+     "max": 24.0,
+     "default": 0.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Band 6 Q",
+     "min": 0.1,
+     "max": 10.0,
+     "default": 1.0
+    },
+    {
+     "name": "Band 7 Enabled",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0
+    },
+    {
+     "name": "Band 7 Type",
+     "min": 0.0,
+     "max": 5.0,
+     "default": 2.0,
+     "choices": [
+      "HP",
+      "LowShelf",
+      "Bell",
+      "HighShelf",
+      "LP",
+      "Notch"
+     ]
+    },
+    {
+     "name": "Band 7 Freq",
+     "min": 20.0,
+     "max": 20000.0,
+     "default": 10000.000977,
+     "unit": "Hz"
+    },
+    {
+     "name": "Band 7 Gain",
+     "min": -24.0,
+     "max": 24.0,
+     "default": 0.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Band 7 Q",
+     "min": 0.1,
+     "max": 10.0,
+     "default": 1.0
+    },
+    {
+     "name": "Band 8 Enabled",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0
+    },
+    {
+     "name": "Band 8 Type",
+     "min": 0.0,
+     "max": 5.0,
+     "default": 2.0,
+     "choices": [
+      "HP",
+      "LowShelf",
+      "Bell",
+      "HighShelf",
+      "LP",
+      "Notch"
+     ]
+    },
+    {
+     "name": "Band 8 Freq",
+     "min": 20.0,
+     "max": 20000.0,
+     "default": 18000.001953,
+     "unit": "Hz"
+    },
+    {
+     "name": "Band 8 Gain",
+     "min": -24.0,
+     "max": 24.0,
+     "default": 0.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Band 8 Q",
+     "min": 0.1,
+     "max": 10.0,
+     "default": 1.0
+    },
+    {
+     "name": "Output",
+     "min": -24.0,
+     "max": 12.0,
+     "default": 0.0,
+     "unit": "dB"
+    }
+   ],
+   "notes": "8 bands. Enable a band with 'Band N Enabled' = 1 before its Type/Freq/Gain/Q matter."
+  },
+  "magda_filter": {
+   "kind": "effect",
+   "format": "internal",
+   "verified": "live",
+   "summary": "Multimode filter with six engine models and drive.",
+   "params": [
+    {
+     "name": "Cutoff",
+     "min": 20.0,
+     "max": 20000.0,
+     "default": 1000.000061,
+     "unit": "Hz"
+    },
+    {
+     "name": "Resonance",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0
+    },
+    {
+     "name": "Drive",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0
+    },
+    {
+     "name": "Engine",
+     "min": 0.0,
+     "max": 5.0,
+     "default": 0.0,
+     "choices": [
+      "SVF",
+      "Ladder",
+      "Korg 35",
+      "Oberheim",
+      "Sallen-Key",
+      "Diode"
+     ]
+    },
+    {
+     "name": "Mode",
+     "min": 0.0,
+     "max": 3.0,
+     "default": 0.0,
+     "choices": [
+      "LP",
+      "BP",
+      "HP",
+      "Notch"
+     ]
+    },
+    {
+     "name": "Limit",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0
+    }
+   ],
+   "notes": "Mode labels depend on Engine: SVF/Oberheim LP-BP-HP-Notch, Ladder LP-HP; set Engine before Mode."
+  },
+  "magda_flanger": {
+   "kind": "effect",
+   "format": "internal",
+   "verified": "live",
+   "summary": "Flanger with tempo sync.",
+   "params": [
+    {
+     "name": "Sync",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0,
+     "choices": [
+      "Off",
+      "On"
+     ]
+    },
+    {
+     "name": "Rate",
+     "min": 0.05,
+     "max": 10.0,
+     "default": 0.5,
+     "unit": "Hz"
+    },
+    {
+     "name": "Division",
+     "min": 0.0,
+     "max": 13.0,
+     "default": 8.0,
+     "choices": [
+      "1/32",
+      "1/16T",
+      "1/16",
+      "1/8T",
+      "1/16.",
+      "1/8",
+      "1/4T",
+      "1/8.",
+      "1/4",
+      "1/2T",
+      "1/4.",
+      "1/2",
+      "1/2.",
+      "1/1"
+     ]
+    },
+    {
+     "name": "Depth",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.5
+    },
+    {
+     "name": "Feedback",
+     "min": -0.95,
+     "max": 0.95,
+     "default": 0.0
+    },
+    {
+     "name": "Mix",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.5
+    },
+    {
+     "name": "Width",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.5
+    }
+   ]
+  },
+  "magda_freq_shift": {
+   "kind": "effect",
+   "format": "internal",
+   "verified": "source",
+   "summary": "Frequency shifter.",
+   "params": [
+    {
+     "name": "Shift",
+     "min": -1000.0,
+     "max": 1000.0,
+     "default": 0.0,
+     "unit": "Hz"
+    },
+    {
+     "name": "Feedback",
+     "min": -0.9,
+     "max": 0.9,
+     "default": 0.0
+    },
+    {
+     "name": "Mix",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.5
+    },
+    {
+     "name": "Spread",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0
+    }
+   ]
+  },
+  "magda_gate_expander": {
+   "kind": "effect",
+   "format": "internal",
+   "verified": "source",
+   "summary": "Gate / downward expander.",
+   "params": [
+    {
+     "name": "Attack",
+     "min": 0.1,
+     "max": 100.0,
+     "default": 1.0,
+     "unit": "ms"
+    },
+    {
+     "name": "Release",
+     "min": 5.0,
+     "max": 1000.0,
+     "default": 120.0,
+     "unit": "ms"
+    },
+    {
+     "name": "Mix",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 1.0
+    },
+    {
+     "name": "Output",
+     "min": -24.0,
+     "max": 24.0,
+     "default": 0.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Threshold",
+     "min": -80.0,
+     "max": 0.0,
+     "default": -40.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Ratio",
+     "min": 1.0,
+     "max": 50.0,
+     "default": 4.0
+    },
+    {
+     "name": "Range",
+     "min": 0.0,
+     "max": 80.0,
+     "default": 60.0,
+     "unit": "dB"
+    }
+   ]
+  },
+  "magda_grain_delay": {
+   "kind": "effect",
+   "format": "internal",
+   "verified": "source",
+   "summary": "Granular delay with pitch and spray.",
+   "params": [
+    {
+     "name": "Time",
+     "min": 1.0,
+     "max": 2000.0,
+     "default": 500.0,
+     "unit": "ms"
+    },
+    {
+     "name": "Sync",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0,
+     "choices": [
+      "Off",
+      "On"
+     ]
+    },
+    {
+     "name": "Size",
+     "min": 20.0,
+     "max": 500.0,
+     "default": 120.0,
+     "unit": "ms"
+    },
+    {
+     "name": "Pitch",
+     "min": -24.0,
+     "max": 24.0,
+     "default": 0.0,
+     "unit": "st"
+    },
+    {
+     "name": "Spray",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0
+    },
+    {
+     "name": "Feedback",
+     "min": 0.0,
+     "max": 0.95,
+     "default": 0.3
+    },
+    {
+     "name": "Mix",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.4
+    },
+    {
+     "name": "Division",
+     "min": 0.0,
+     "max": 13.0,
+     "default": null,
+     "choices": [
+      "1/32",
+      "1/16T",
+      "1/16",
+      "1/8T",
+      "1/16.",
+      "1/8",
+      "1/4T",
+      "1/8.",
+      "1/4",
+      "1/2T",
+      "1/4.",
+      "1/2",
+      "1/2.",
+      "1/1"
+     ]
+    }
+   ]
+  },
+  "magda_grit": {
+   "kind": "effect",
+   "format": "internal",
+   "verified": "source",
+   "summary": "Adds noise/sine grit around a frequency.",
+   "params": [
+    {
+     "name": "Frequency",
+     "min": 20.0,
+     "max": 16000.0,
+     "default": 1000.0,
+     "unit": "Hz"
+    },
+    {
+     "name": "Width",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.5
+    },
+    {
+     "name": "Amount",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0
+    },
+    {
+     "name": "Mode",
+     "min": 0.0,
+     "max": 2.0,
+     "default": 0.0,
+     "choices": [
+      "Noise",
+      "Wide Noise",
+      "Sine"
+     ]
+    }
+   ]
+  },
+  "magda_limiter": {
+   "kind": "effect",
+   "format": "internal",
+   "verified": "live",
+   "summary": "Peak limiter.",
+   "params": [
+    {
+     "name": "Threshold",
+     "min": -24.0,
+     "max": 0.0,
+     "default": -1.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Attack",
+     "min": 0.1,
+     "max": 50.0,
+     "default": 1.0,
+     "unit": "ms"
+    },
+    {
+     "name": "Release",
+     "min": 10.0,
+     "max": 2000.0,
+     "default": 199.999969,
+     "unit": "ms"
+    },
+    {
+     "name": "Output",
+     "min": -24.0,
+     "max": 0.0,
+     "default": 0.0,
+     "unit": "dB"
+    }
+   ]
+  },
+  "magda_mod": {
+   "kind": "effect",
+   "format": "internal",
+   "verified": "source",
+   "summary": "Tremolo / vibrato / autopan with tempo sync.",
+   "params": [
+    {
+     "name": "Sync",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0,
+     "choices": [
+      "Off",
+      "On"
+     ]
+    },
+    {
+     "name": "Rate",
+     "min": 0.05,
+     "max": 20.0,
+     "default": 4.0,
+     "unit": "Hz"
+    },
+    {
+     "name": "Depth",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.5
+    },
+    {
+     "name": "Mode",
+     "min": 0.0,
+     "max": 2.0,
+     "default": 0.0,
+     "choices": [
+      "Tremolo",
+      "Vibrato",
+      "Autopan"
+     ]
+    },
+    {
+     "name": "Division",
+     "min": 0.0,
+     "max": 13.0,
+     "default": null,
+     "choices": [
+      "1/32",
+      "1/16T",
+      "1/16",
+      "1/8T",
+      "1/16.",
+      "1/8",
+      "1/4T",
+      "1/8.",
+      "1/4",
+      "1/2T",
+      "1/4.",
+      "1/2",
+      "1/2.",
+      "1/1"
+     ]
+    },
+    {
+     "name": "Shape",
+     "min": 0.0,
+     "max": 3.0,
+     "default": 0.0,
+     "choices": [
+      "Sine",
+      "Triangle",
+      "Square",
+      "S&H"
+     ]
+    }
+   ],
+   "notes": "Tempo-synced tremolo / vibrato / autopan: Sync On + Division + Shape Square gives a rhythmic gate."
+  },
+  "magda_multiband": {
+   "kind": "effect",
+   "format": "internal",
+   "verified": "source",
+   "summary": "OTT-style multiband compressor.",
+   "params": [
+    {
+     "name": "Amount",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.8
+    },
+    {
+     "name": "Attack",
+     "min": 0.1,
+     "max": 100.0,
+     "default": 3.0,
+     "unit": "ms"
+    },
+    {
+     "name": "Release",
+     "min": 5.0,
+     "max": 1000.0,
+     "default": 120.0,
+     "unit": "ms"
+    },
+    {
+     "name": "Input",
+     "min": -24.0,
+     "max": 24.0,
+     "default": 0.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Output",
+     "min": -24.0,
+     "max": 24.0,
+     "default": 0.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Mix",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 1.0
+    },
+    {
+     "name": "Low XO",
+     "min": 40.0,
+     "max": 500.0,
+     "default": 120.0,
+     "unit": "Hz"
+    },
+    {
+     "name": "High XO",
+     "min": 500.0,
+     "max": 8000.0,
+     "default": 2500.0,
+     "unit": "Hz"
+    }
+   ],
+   "notes": "OTT-style upward/downward multiband compressor (Low/Mid/High). Per-band parameters exist but are not catalogued yet: inspect them live."
+  },
+  "magda_phaser": {
+   "kind": "effect",
+   "format": "internal",
+   "verified": "live",
+   "summary": "Phaser, 2-8 stages.",
+   "params": [
+    {
+     "name": "Rate",
+     "min": 0.05,
+     "max": 10.0,
+     "default": 0.5,
+     "unit": "Hz"
+    },
+    {
+     "name": "Depth",
+     "min": 0.0,
+     "max": 2.0,
+     "default": 1.0
+    },
+    {
+     "name": "Feedback",
+     "min": -0.95,
+     "max": 0.95,
+     "default": 0.3
+    },
+    {
+     "name": "Stages",
+     "min": 0.0,
+     "max": 3.0,
+     "default": 1.0,
+     "choices": [
+      "2",
+      "4",
+      "6",
+      "8"
+     ]
+    },
+    {
+     "name": "Min Hz",
+     "min": 30.0,
+     "max": 1000.0,
+     "default": 100.000008,
+     "unit": "Hz"
+    },
+    {
+     "name": "Max Hz",
+     "min": 500.0,
+     "max": 8000.0,
+     "default": 2000.0,
+     "unit": "Hz"
+    },
+    {
+     "name": "Mix",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.6
+    }
+   ]
+  },
+  "magda_reverb": {
+   "kind": "effect",
+   "format": "internal",
+   "verified": "live",
+   "summary": "Algorithmic reverb (Plate/Hall/Room) with predelay, damping and cut filters.",
+   "params": [
+    {
+     "name": "Engine",
+     "min": 0.0,
+     "max": 2.0,
+     "default": 0.0,
+     "choices": [
+      "Plate",
+      "Hall",
+      "Room"
+     ]
+    },
+    {
+     "name": "Mix",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.3
+    },
+    {
+     "name": "Predelay",
+     "min": 0.0,
+     "max": 250.0,
+     "default": 20.0,
+     "unit": "ms"
+    },
+    {
+     "name": "Decay",
+     "min": 0.0,
+     "max": 100.0,
+     "default": 50.0
+    },
+    {
+     "name": "Damping",
+     "min": 0.0,
+     "max": 100.0,
+     "default": 30.000002
+    },
+    {
+     "name": "Low Cut",
+     "min": 20.0,
+     "max": 500.0,
+     "default": 39.999996,
+     "unit": "Hz"
+    },
+    {
+     "name": "High Cut",
+     "min": 1000.0,
+     "max": 18000.0,
+     "default": 12000.0,
+     "unit": "Hz"
+    },
+    {
+     "name": "Width",
+     "min": 0.0,
+     "max": 200.0,
+     "default": 100.0
+    },
+    {
+     "name": "Output",
+     "min": -24.0,
+     "max": 12.0,
+     "default": 0.0,
+     "unit": "dB"
+    }
+   ]
+  },
+  "magda_ring_mod": {
+   "kind": "effect",
+   "format": "internal",
+   "verified": "source",
+   "summary": "Ring modulator with tempo sync.",
+   "params": [
+    {
+     "name": "Sync",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0,
+     "choices": [
+      "Off",
+      "On"
+     ]
+    },
+    {
+     "name": "Frequency",
+     "min": 1.0,
+     "max": 5000.0,
+     "default": 100.0,
+     "unit": "Hz"
+    },
+    {
+     "name": "Mix",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.5
+    },
+    {
+     "name": "Width",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.5
+    },
+    {
+     "name": "Division",
+     "min": 0.0,
+     "max": 13.0,
+     "default": null,
+     "choices": [
+      "1/32",
+      "1/16T",
+      "1/16",
+      "1/8T",
+      "1/16.",
+      "1/8",
+      "1/4T",
+      "1/8.",
+      "1/4",
+      "1/2T",
+      "1/4.",
+      "1/2",
+      "1/2.",
+      "1/1"
+     ]
+    },
+    {
+     "name": "Shape",
+     "min": 0.0,
+     "max": 2.0,
+     "default": 0.0,
+     "choices": [
+      "Sine",
+      "Triangle",
+      "Square"
+     ]
+    },
+    {
+     "name": "Source",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0,
+     "choices": [
+      "Oscillator",
+      "Sidechain"
+     ]
+    }
+   ]
+  },
+  "magda_saturator": {
+   "kind": "effect",
+   "format": "internal",
+   "verified": "live",
+   "summary": "Saturation: tanh/soft/hard/fold/tube/tape.",
+   "params": [
+    {
+     "name": "Drive",
+     "min": 0.0,
+     "max": 24.0,
+     "default": 0.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Mode",
+     "min": 0.0,
+     "max": 5.0,
+     "default": 0.0,
+     "choices": [
+      "Tanh",
+      "Soft",
+      "Hard",
+      "Fold",
+      "Tube",
+      "Tape"
+     ]
+    },
+    {
+     "name": "Bias",
+     "min": -1.0,
+     "max": 1.0,
+     "default": 0.0
+    },
+    {
+     "name": "Tone",
+     "min": -1.0,
+     "max": 1.0,
+     "default": 0.0
+    },
+    {
+     "name": "Mix",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 1.0
+    },
+    {
+     "name": "Output",
+     "min": -24.0,
+     "max": 6.0,
+     "default": 0.0,
+     "unit": "dB"
+    }
+   ]
+  },
+  "magda_utility": {
+   "kind": "effect",
+   "format": "internal",
+   "verified": "live",
+   "summary": "Gain, pan, width, low-end mono, phase flips.",
+   "params": [
+    {
+     "name": "Gain",
+     "min": -60.0,
+     "max": 12.0,
+     "default": 0.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Pan",
+     "min": -1.0,
+     "max": 1.0,
+     "default": 0.0
+    },
+    {
+     "name": "Width",
+     "min": 0.0,
+     "max": 200.0,
+     "default": 100.0,
+     "unit": "%"
+    },
+    {
+     "name": "Low Mono Freq",
+     "min": 20.0,
+     "max": 500.0,
+     "default": 120.000015,
+     "unit": "Hz"
+    },
+    {
+     "name": "Mono",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0
+    },
+    {
+     "name": "Low Mono",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0
+    },
+    {
+     "name": "Flip L",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0
+    },
+    {
+     "name": "Flip R",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0
+    }
+   ],
+   "notes": "Pan/Width/Low Mono live here: the CLI has no track pan, so pan with this."
+  }
+ }
+}
