@@ -1,5 +1,7 @@
 # ComposerBench
 
+[![tests](https://github.com/newmattock/ComposerBench/actions/workflows/tests.yml/badge.svg)](https://github.com/newmattock/ComposerBench/actions/workflows/tests.yml)
+
 **Give an AI music agent a workspace it can inspect, edit, render, and revise.**
 
 ComposerBench is a Python toolkit for music composition and production through the MAGDA DAW. It connects musical intent and arrangement plans to MIDI, instruments, effects, actual audio, and a recorded revision loop. Built by Jacob Hatchett; formerly MusicBench.
