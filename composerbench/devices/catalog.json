@@ -1,9 +1,9 @@
 {
  "version": 1,
- "generated": "2026-10-12",
+ "generated": "2026-10-25",
  "sources": [
   "live engine probe (examples/hyperpop_probe.py)",
-  "magda-core compiled plugin sources (labels; unprobed effects)"
+  "live engine probe of every internal device (composerbench devices refresh, MAGDA ebd93db0 + serve patch, Linux)"
  ],
  "aliases": {
   "reverb": "magda_reverb",
@@ -550,7 +550,7 @@
      "name": "Gain",
      "min": -24.0,
      "max": 6.0,
-     "default": -5.999999,
+     "default": -6.0,
      "unit": "dB"
     }
    ],
@@ -616,7 +616,7 @@
      "name": "Gain",
      "min": -24.0,
      "max": 6.0,
-     "default": -5.999999,
+     "default": -6.0,
      "unit": "dB"
     }
    ]
@@ -624,9 +624,49 @@
   "magda_djembe": {
    "kind": "instrument",
    "format": "internal",
-   "verified": "allowlist",
+   "verified": "live",
    "summary": "Synth djembe.",
-   "params": []
+   "params": [
+    {
+     "name": "strike_position",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.4
+    },
+    {
+     "name": "strike_sharpness",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.5
+    },
+    {
+     "name": "decay",
+     "min": 50.0,
+     "max": 3000.0,
+     "default": 600.0,
+     "unit": "ms"
+    },
+    {
+     "name": "spacing",
+     "min": 20.0,
+     "max": 600.0,
+     "default": 200.0,
+     "unit": "Hz"
+    },
+    {
+     "name": "inharmonicity",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.0
+    },
+    {
+     "name": "Gain",
+     "min": -24.0,
+     "max": 6.0,
+     "default": -6.0,
+     "unit": "dB"
+    }
+   ]
   },
   "magda_fm": {
    "kind": "instrument",
@@ -958,7 +998,7 @@
      "name": "Gain",
      "min": -24.0,
      "max": 6.0,
-     "default": -5.999999,
+     "default": -6.0,
      "unit": "dB"
     },
     {
@@ -1053,7 +1093,7 @@
      "name": "Gain",
      "min": -24.0,
      "max": 6.0,
-     "default": -5.999999,
+     "default": -6.0,
      "unit": "dB"
     }
    ]
@@ -1156,7 +1196,7 @@
      "name": "Gain",
      "min": -24.0,
      "max": 6.0,
-     "default": -5.999999,
+     "default": -6.0,
      "unit": "dB"
     }
    ]
@@ -1197,7 +1237,7 @@
      "name": "Gain",
      "min": -24.0,
      "max": 6.0,
-     "default": -5.999999,
+     "default": -6.0,
      "unit": "dB"
     }
    ]
@@ -1224,7 +1264,7 @@
      "name": "Osc 1 Level",
      "min": -60.0,
      "max": 6.0,
-     "default": -11.999999,
+     "default": -12.0,
      "unit": "dB"
     },
     {
@@ -1699,7 +1739,7 @@
      "name": "Gain",
      "min": -24.0,
      "max": 6.0,
-     "default": -5.999999,
+     "default": -6.0,
      "unit": "dB"
     }
    ]
@@ -1771,7 +1811,7 @@
      "name": "Gain",
      "min": -24.0,
      "max": 6.0,
-     "default": -5.999999,
+     "default": -6.0,
      "unit": "dB"
     }
    ]
@@ -2136,9 +2176,20 @@
   "magda_dimension": {
    "kind": "effect",
    "format": "internal",
-   "verified": "source",
+   "verified": "live",
    "summary": "Stereo widener: Dimension, Haas or M/S.",
    "params": [
+    {
+     "name": "Engine",
+     "min": 0.0,
+     "max": 2.0,
+     "default": 0.0,
+     "choices": [
+      "Dimension",
+      "Haas",
+      "M/S"
+     ]
+    },
     {
      "name": "Amount",
      "min": 0.0,
@@ -2170,17 +2221,6 @@
      "max": 12.0,
      "default": 0.0,
      "unit": "dB"
-    },
-    {
-     "name": "Engine",
-     "min": 0.0,
-     "max": 2.0,
-     "default": 0.0,
-     "choices": [
-      "Dimension",
-      "Haas",
-      "M/S"
-     ]
     }
    ]
   },
@@ -2654,7 +2694,7 @@
   "magda_freq_shift": {
    "kind": "effect",
    "format": "internal",
-   "verified": "source",
+   "verified": "live",
    "summary": "Frequency shifter.",
    "params": [
     {
@@ -2687,7 +2727,7 @@
   "magda_gate_expander": {
    "kind": "effect",
    "format": "internal",
-   "verified": "source",
+   "verified": "live",
    "summary": "Gate / downward expander.",
    "params": [
     {
@@ -2742,7 +2782,7 @@
   "magda_grain_delay": {
    "kind": "effect",
    "format": "internal",
-   "verified": "source",
+   "verified": "live",
    "summary": "Granular delay with pitch and spray.",
    "params": [
     {
@@ -2751,6 +2791,26 @@
      "max": 2000.0,
      "default": 500.0,
      "unit": "ms"
+    },
+    {
+     "name": "Division",
+     "min": 0.0,
+     "max": 11.0,
+     "default": 6.0,
+     "choices": [
+      "1/16T",
+      "1/16",
+      "1/8T",
+      "1/8",
+      "1/4T",
+      "1/8.",
+      "1/4",
+      "1/2T",
+      "1/4.",
+      "1/2",
+      "1/2.",
+      "1/1"
+     ]
     },
     {
      "name": "Sync",
@@ -2793,42 +2853,20 @@
      "min": 0.0,
      "max": 1.0,
      "default": 0.4
-    },
-    {
-     "name": "Division",
-     "min": 0.0,
-     "max": 13.0,
-     "default": null,
-     "choices": [
-      "1/32",
-      "1/16T",
-      "1/16",
-      "1/8T",
-      "1/16.",
-      "1/8",
-      "1/4T",
-      "1/8.",
-      "1/4",
-      "1/2T",
-      "1/4.",
-      "1/2",
-      "1/2.",
-      "1/1"
-     ]
     }
    ]
   },
   "magda_grit": {
    "kind": "effect",
    "format": "internal",
-   "verified": "source",
+   "verified": "live",
    "summary": "Adds noise/sine grit around a frequency.",
    "params": [
     {
      "name": "Frequency",
      "min": 20.0,
      "max": 16000.0,
-     "default": 1000.0,
+     "default": 1000.000061,
      "unit": "Hz"
     },
     {
@@ -2895,9 +2933,20 @@
   "magda_mod": {
    "kind": "effect",
    "format": "internal",
-   "verified": "source",
+   "verified": "live",
    "summary": "Tremolo / vibrato / autopan with tempo sync.",
    "params": [
+    {
+     "name": "Mode",
+     "min": 0.0,
+     "max": 2.0,
+     "default": 0.0,
+     "choices": [
+      "Tremolo",
+      "Vibrato",
+      "Autopan"
+     ]
+    },
     {
      "name": "Sync",
      "min": 0.0,
@@ -2916,27 +2965,10 @@
      "unit": "Hz"
     },
     {
-     "name": "Depth",
-     "min": 0.0,
-     "max": 1.0,
-     "default": 0.5
-    },
-    {
-     "name": "Mode",
-     "min": 0.0,
-     "max": 2.0,
-     "default": 0.0,
-     "choices": [
-      "Tremolo",
-      "Vibrato",
-      "Autopan"
-     ]
-    },
-    {
      "name": "Division",
      "min": 0.0,
      "max": 13.0,
-     "default": null,
+     "default": 8.0,
      "choices": [
       "1/32",
       "1/16T",
@@ -2953,6 +2985,12 @@
       "1/2.",
       "1/1"
      ]
+    },
+    {
+     "name": "Depth",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.5
     },
     {
      "name": "Shape",
@@ -2972,7 +3010,7 @@
   "magda_multiband": {
    "kind": "effect",
    "format": "internal",
-   "verified": "source",
+   "verified": "live",
    "summary": "OTT-style multiband compressor.",
    "params": [
     {
@@ -3016,17 +3054,221 @@
      "default": 1.0
     },
     {
+     "name": "Low Input",
+     "min": -24.0,
+     "max": 24.0,
+     "default": 0.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Mid Input",
+     "min": -24.0,
+     "max": 24.0,
+     "default": 0.0,
+     "unit": "dB"
+    },
+    {
+     "name": "High Input",
+     "min": -24.0,
+     "max": 24.0,
+     "default": 0.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Low Output",
+     "min": -24.0,
+     "max": 24.0,
+     "default": 0.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Mid Output",
+     "min": -24.0,
+     "max": 24.0,
+     "default": 0.0,
+     "unit": "dB"
+    },
+    {
+     "name": "High Output",
+     "min": -24.0,
+     "max": 24.0,
+     "default": 0.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Low Lower Threshold",
+     "min": -80.0,
+     "max": 0.0,
+     "default": -48.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Low Upper Threshold",
+     "min": -80.0,
+     "max": 0.0,
+     "default": -24.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Low Below Ratio",
+     "min": 0.05,
+     "max": 100.0,
+     "default": 8.0
+    },
+    {
+     "name": "Low Above Ratio",
+     "min": 0.05,
+     "max": 100.0,
+     "default": 8.0
+    },
+    {
+     "name": "Low Range",
+     "min": 0.0,
+     "max": 48.0,
+     "default": 24.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Low Limit",
+     "min": -24.0,
+     "max": 12.0,
+     "default": 0.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Low Attack",
+     "min": 0.1,
+     "max": 100.0,
+     "default": 3.0,
+     "unit": "ms"
+    },
+    {
+     "name": "Low Release",
+     "min": 5.0,
+     "max": 1000.0,
+     "default": 120.0,
+     "unit": "ms"
+    },
+    {
+     "name": "Mid Lower Threshold",
+     "min": -80.0,
+     "max": 0.0,
+     "default": -48.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Mid Upper Threshold",
+     "min": -80.0,
+     "max": 0.0,
+     "default": -24.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Mid Below Ratio",
+     "min": 0.05,
+     "max": 100.0,
+     "default": 8.0
+    },
+    {
+     "name": "Mid Above Ratio",
+     "min": 0.05,
+     "max": 100.0,
+     "default": 8.0
+    },
+    {
+     "name": "Mid Range",
+     "min": 0.0,
+     "max": 48.0,
+     "default": 24.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Mid Limit",
+     "min": -24.0,
+     "max": 12.0,
+     "default": 0.0,
+     "unit": "dB"
+    },
+    {
+     "name": "Mid Attack",
+     "min": 0.1,
+     "max": 100.0,
+     "default": 3.0,
+     "unit": "ms"
+    },
+    {
+     "name": "Mid Release",
+     "min": 5.0,
+     "max": 1000.0,
+     "default": 120.0,
+     "unit": "ms"
+    },
+    {
+     "name": "High Lower Threshold",
+     "min": -80.0,
+     "max": 0.0,
+     "default": -48.0,
+     "unit": "dB"
+    },
+    {
+     "name": "High Upper Threshold",
+     "min": -80.0,
+     "max": 0.0,
+     "default": -24.0,
+     "unit": "dB"
+    },
+    {
+     "name": "High Below Ratio",
+     "min": 0.05,
+     "max": 100.0,
+     "default": 8.0
+    },
+    {
+     "name": "High Above Ratio",
+     "min": 0.05,
+     "max": 100.0,
+     "default": 8.0
+    },
+    {
+     "name": "High Range",
+     "min": 0.0,
+     "max": 48.0,
+     "default": 24.0,
+     "unit": "dB"
+    },
+    {
+     "name": "High Limit",
+     "min": -24.0,
+     "max": 12.0,
+     "default": 0.0,
+     "unit": "dB"
+    },
+    {
+     "name": "High Attack",
+     "min": 0.1,
+     "max": 100.0,
+     "default": 3.0,
+     "unit": "ms"
+    },
+    {
+     "name": "High Release",
+     "min": 5.0,
+     "max": 1000.0,
+     "default": 120.0,
+     "unit": "ms"
+    },
+    {
      "name": "Low XO",
      "min": 40.0,
      "max": 500.0,
-     "default": 120.0,
+     "default": 119.999992,
      "unit": "Hz"
     },
     {
      "name": "High XO",
      "min": 500.0,
      "max": 8000.0,
-     "default": 2500.0,
+     "default": 2499.999756,
      "unit": "Hz"
     }
    ],
@@ -3165,7 +3407,7 @@
   "magda_ring_mod": {
    "kind": "effect",
    "format": "internal",
-   "verified": "source",
+   "verified": "live",
    "summary": "Ring modulator with tempo sync.",
    "params": [
     {
@@ -3182,26 +3424,14 @@
      "name": "Frequency",
      "min": 1.0,
      "max": 5000.0,
-     "default": 100.0,
+     "default": 100.000008,
      "unit": "Hz"
-    },
-    {
-     "name": "Mix",
-     "min": 0.0,
-     "max": 1.0,
-     "default": 0.5
-    },
-    {
-     "name": "Width",
-     "min": 0.0,
-     "max": 1.0,
-     "default": 0.5
     },
     {
      "name": "Division",
      "min": 0.0,
      "max": 13.0,
-     "default": null,
+     "default": 8.0,
      "choices": [
       "1/32",
       "1/16T",
@@ -3229,6 +3459,18 @@
       "Triangle",
       "Square"
      ]
+    },
+    {
+     "name": "Mix",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.5
+    },
+    {
+     "name": "Width",
+     "min": 0.0,
+     "max": 1.0,
+     "default": 0.5
     },
     {
      "name": "Source",

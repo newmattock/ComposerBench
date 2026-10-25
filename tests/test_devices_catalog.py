@@ -56,3 +56,15 @@ def test_every_preset_is_valid_against_the_catalog():
     preset = get_preset("bass_808")
     preset["instrument"]["params"]["Glide"] = 1          # copies, never the shared table
     assert PRESETS["bass_808"]["instrument"]["params"]["Glide"] == 55.0
+
+
+def test_every_internal_device_is_live_verified():
+    # djembe used to have no parameters and multiband / grain delay came from
+    # source reading; the shipped catalog is now a live probe of every device
+    from composerbench.devices.catalog import load_catalog
+    devices = load_catalog(user=False)["devices"]
+    internal = {n: d for n, d in devices.items() if d.get("format", "internal") == "internal"}
+    assert all(d["verified"] == "live" and d["params"] for d in internal.values())
+    division = next(p for p in internal["magda_grain_delay"]["params"] if p["name"] == "Division")
+    assert division["choices"][0] == "1/16T" and division["max"] == 11.0
+    assert any(p["name"] == "High Attack" for p in internal["magda_multiband"]["params"])
