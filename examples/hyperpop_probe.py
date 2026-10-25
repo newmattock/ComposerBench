@@ -22,8 +22,9 @@ from composerbench.adapter.base import RenderRequest  # noqa: E402
 from composerbench.adapter.magda_serve import MagdaServeAdapter  # noqa: E402
 from composerbench.analysis.audio import analyze_wav  # noqa: E402
 from composerbench.model import Note  # noqa: E402
+from composerbench.engine import discover_cli  # noqa: E402
 
-CLI = pathlib.Path("~/magda-core/cmake-build-debug/magda/daw/magda_cli_artefacts/Debug/magda_cli").expanduser()
+CLI = discover_cli() or pathlib.Path("magda_cli")
 OUT = pathlib.Path.home() / "Music" / "ComposerBench" / "hyperpop_agent" / "probe"
 WORK = OUT / "proj"
 REPORT = {"errors": []}

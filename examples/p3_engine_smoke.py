@@ -22,8 +22,9 @@ import wave
 from pathlib import Path
 
 import numpy as np
+from composerbench.engine import discover_cli  # noqa: E402
 
-CLI = Path("~/magda-core/cmake-build-debug/magda/daw/magda_cli_artefacts/Debug/magda_cli").expanduser()
+CLI = discover_cli() or Path("magda_cli")
 BPM = 120.0
 BEAT = 60.0 / BPM
 

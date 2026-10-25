@@ -111,3 +111,24 @@ def test_stdio_end_to_end_subprocess():
     assert responses[0]["result"]["serverInfo"]["name"] == "composerbench"
     tools = responses[1]["result"]["tools"]
     assert any(t["name"] == "music_render" for t in tools)
+
+
+def test_every_tool_belongs_to_a_toolset_and_toolsets_filter_the_list(tmp_path):
+    import asyncio
+
+    from composerbench.mcp.server import TOOLS, TOOLSETS, MCPServer, ServerConfig, enabled_tools
+    grouped = set().union(*TOOLSETS.values())
+    assert {t["name"] for t in TOOLS} == grouped
+    song_only = enabled_tools("song")
+    assert "music_song_build" in song_only and "music_status" in song_only and "music_batch_edit" not in song_only
+    server = MCPServer(None, ServerConfig(adapter="fake", workspace=str(tmp_path), toolsets="song"))
+    listed = server.dispatch({"jsonrpc": "2.0", "id": 1, "method": "tools/list"})
+    assert {t["name"] for t in listed["result"]["tools"]} == song_only
+    refused = asyncio.run(server.call_tool("music_batch_edit", {"actions": []}))
+    assert refused["isError"] and "toolsets" in json.dumps(refused["structuredContent"])
+    try:
+        enabled_tools("songs")
+    except ValueError as e:
+        assert "unknown toolsets" in str(e)
+    else:
+        raise AssertionError("a typo in toolsets must fail")

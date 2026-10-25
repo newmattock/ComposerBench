@@ -1,4 +1,7 @@
 """Device catalog lookups, value checks, and that every preset passes them."""
+import json
+from pathlib import Path
+
 from composerbench.devices import catalog
 from composerbench.devices.presets import PRESETS, get_preset, list_presets
 
@@ -68,3 +71,36 @@ def test_every_internal_device_is_live_verified():
     division = next(p for p in internal["magda_grain_delay"]["params"] if p["name"] == "Division")
     assert division["choices"][0] == "1/16T" and division["max"] == 11.0
     assert any(p["name"] == "High Attack" for p in internal["magda_multiband"]["params"])
+
+
+async def test_refresh_live_against_the_emulator(tmp_path, monkeypatch):
+    # the emulator serves every catalogued device with the catalog's own
+    # parameters, so a live refresh must reproduce the shipped catalog
+    import sys
+
+    from composerbench.devices.build_catalog import refresh_live
+    from composerbench.devices.catalog import load_catalog
+    emulator = Path(__file__).with_name("_serve_emulator.py")
+    monkeypatch.setenv("EMU_CATALOG", "1")
+    cli = tmp_path / "magda_cli_emu"
+    cli.write_text(f'#!/bin/sh\nEMU_PROTOCOL=2 exec "{sys.executable}" "{emulator}" "$@"\n')
+    cli.chmod(0o755)
+    out = tmp_path / "devices.json"
+    result = await refresh_live(cli, tmp_path / "work", out)
+    assert result["errors"] == {} and result["devices"] == len(load_catalog(user=False)["devices"])
+    refreshed = json.loads(out.read_text())["devices"]
+    shipped = load_catalog(user=False)["devices"]
+    for name in ("magda_delay", "magda_kick", "magda_multiband"):
+        assert [p["name"] for p in refreshed[name]["params"]] == [p["name"] for p in shipped[name]["params"]]
+
+
+def test_build_from_a_probe_file(tmp_path):
+    from composerbench.devices.build_catalog import build
+    probe = {"instruments": {"magda_kick": {"devices": [{"name": "magda_kick", "parameters": [
+        {"name": "Gain", "min": -24.0, "max": 6.0, "default": -6.0, "unit": "dB"}]}]}},
+             "fx": {"magda_delay": {"reply": {"ok": False}}}}
+    path = tmp_path / "probe.json"
+    path.write_text(json.dumps(probe))
+    catalog = build(path)
+    assert set(catalog["devices"]) >= {"magda_kick"} and catalog["devices"]["magda_kick"]["kind"] == "instrument"
+    assert catalog["devices"]["magda_kick"]["params"][0]["name"] == "Gain"

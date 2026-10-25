@@ -3,7 +3,7 @@
 MAGDA remains authoritative for audio-production state.
 ComposerBench owns intent, plans, semantic labels, memory, evaluation history.
 
-Governing principle (see docs/COMPOSERBENCH_MASTER_BUILD_PROMPT.md):
+Governing principle (see docs/archive/COMPOSERBENCH_MASTER_BUILD_PROMPT.md):
 maximize agent control + musical semantics + observability + reversibility
 + real audio feedback + compatibility with upstream MAGDA.
 """

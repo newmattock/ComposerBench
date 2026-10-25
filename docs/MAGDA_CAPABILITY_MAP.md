@@ -1,5 +1,14 @@
 # MAGDA Capability Map
 
+> **Historical (August 2026).** This map describes *upstream* `magda_cli` at
+> `ebd93db0` before ComposerBench's engine patch. The patched build that
+> ComposerBench uses adds a persistent `serve` session (protocol 3: device
+> parameters with labels, FX, mixer, sends, sidechain, automation, clip edits,
+> master inserts, track and stem renders) - see [BUILDING_MAGDA.md](BUILDING_MAGDA.md)
+> and the protocol reference in [AGENT_ACCESS.md](AGENT_ACCESS.md). Upstream has
+> since grown its own remote API, so check a newer checkout before relying on
+> the "not supported" rows below.
+
 Status: **LIVE-VERIFIED** — integration claims exercised against the built binary (`magda_cli`, Debug, JUCE 8.0.12 / tracktion_engine @ 09f2748f).
 Upstream: `github.com/Conceptual-Machines/magda-core` @ `ebd93db0`.
 License: **GPL-3.0** (repo). Tracktion Engine/JUCE licensing still to be documented (§5).

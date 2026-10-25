@@ -82,7 +82,7 @@ the Surge XT VST3), `supersaw_poly`, `pad_sweep`, `pluck`, `bell`, `bell_fm`,
     {"name": "pad", "instrument": {"device": "magda_polysynth", "params": {"Osc 1 Wave": "Saw", "Cutoff": 1200}},
      "fx": [{"device": "magda_reverb", "params": {"Engine": "Hall", "Mix": 0.3}}],
      "volume": 0.25, "stem": "synths"},
-    {"name": "lead", "preset": "lead_glide", "part": "hook", "transpose": 12}
+    {"name": "lead", "preset": "lead_glide", "part": "hook", "transpose": 12, "level": 1.0, "pan": 0.1}
   ],
   "render": {"mix": true, "stems": true, "bit_depth": 24, "tail_beats": 4}
 }
@@ -95,6 +95,14 @@ the Surge XT VST3), `supersaw_poly`, `pad_sweep`, `pluck`, `bell`, `bell_fm`,
   `{"label": ..., "value": ...}` (label first, number as fallback). Numbers
   outside a parameter's range are clamped and reported.
 * `bpm` and `length_beats` default to the score's.
+* Faders: `volume` (linear 0..2) wins; otherwise `level` sets it - the part's
+  loudness in LU relative to the kick (0 = kick, -1.5 = 808 or supersaws,
+  -10 = hats). Every preset has a default level and a measured loudness at a
+  unity fader (`devices/preset_levels.json`), so a spec that names only presets
+  starts close to balanced. `reference_lufs` (default -23.5) is where a level-0
+  part lands in the engine render, leaving headroom for the master stage.
+  Re-measure presets for a new engine build with `composerbench presets calibrate`.
+* `pan` (-1..1) is set in the engine (protocol 3).
 
 `check_song` resolves presets, checks every device and parameter against the
 catalog (typos come back with suggestions), checks notes against the clip,
@@ -105,7 +113,7 @@ A build writes the following files to `out_dir` (default `~/Music/ComposerBench/
 
 | File | Contents |
 | --- | --- |
-| `mix.wav`, `stems/<stem>.wav` | 24-bit renders; each stem is rendered with the other tracks' faders at 0 |
+| `mix.wav`, `stems/<stem>.wav` | 24-bit renders; a protocol-3 engine renders each stem from its own tracks, older engines with the other faders at 0 (same audio, ~2.5x slower) |
 | `score.json` | the notes exactly as played, sections, chords, bpm (the mix stage reads it) |
 | `session.json` | per-parameter results (`how`: label / value / clamped / value-fallback), read-back mismatches, note counts, render stats (peak, RMS, LUFS, true peak), timings, `problems` |
 | `spec.resolved.json` | presets expanded into concrete devices |
@@ -184,21 +192,60 @@ From Python, call `await build_song("song.json")` and `run_mix("mix.json")`.
 Over MCP, `music_song_build` returns a job id at once; poll
 `music_job_status` until it is `done`, then call `music_mixdown`.
 
+## Balance pass
+
+Preset levels are measured on a short probe phrase; a song's own parts are
+denser or sparser, higher or lower. After a build, the balance pass renders
+every track alone, measures it per section (its level is the median of the
+sections within 6 LU of its loudest), and moves each fader so the part sits at
+its level:
+
+```sh
+composerbench song balance ~/Music/ComposerBench/demo            # report only
+composerbench song balance ~/Music/ComposerBench/demo --apply    # write faders, rebuild stems + mix.wav
+composerbench song balance DIR --apply --levels '{"pad": -4}'     # override targets
+```
+
+Over MCP: `music_balance` (a background job; about 20 s per track). With
+`apply`, the stems and `mix.wav` are rebuilt from the track renders with the
+new gains, exactly as a re-render would be, so `music_mixdown` can run at once.
+`balance.json` lists every move and a `spec_patch` with the new volumes.
+
+## Checks that stand in for listening
+
+* `check_score` (and `music_score_check`): harmony clashes, ranges, mono
+  overlaps, and runaway notes - a note that rings on into a section where its
+  part plays nothing else (a slide or legato reaching a far-off note), or any
+  note longer than 8 bars.
+* Mix reports carry `warnings`: a section louder than one it should build to
+  (from the sections' `energy`), a bass-heavy tilt (1-4 kHz more than 10 dB
+  under the low end), no top end, a nearly mono mix, or a stem buried more than
+  15 dB under the loudest stem where it plays.
+
+## Engine-side mixing (protocol 3)
+
+With the patched engine an agent can also mix inside MAGDA, where the result is
+part of the project and every render: `music_mixer_set` (volume in dB, pan,
+mute, solo, sends to aux tracks), `music_fx_add` with `track: "master"`,
+`position` or `sidechain_from` (key the built-in `sidechain` ducker or a
+compressor from the kick), `music_automation_write` (volume, pan, send and
+parameter lanes in real units), `music_clip_edit` and `music_stems_render`.
+The adapter methods are `set_mixer`, `set_send`, `add_effect`, `set_sidechain`,
+`write_automation`, `clip_edit` and `render_stems` on `MagdaServeAdapter`.
+
 ## Limits
 
 * No singing voice, and no audio clips in MAGDA, so vocals are out of scope
   for now.
-* Automation, sends and sidechain happen per stem, after rendering. A filter
-  sweep on the `synths` stem moves every track in that stem, so give a part
-  its own stem when it needs its own automation.
-* Engine-side automation, sends, sidechain and stem rendering (serve protocol
-  3) are written in magda-core but were never built. When they are, the
-  builder can use them instead of the mix stage.
+* The mix stage works per stem, after rendering: a filter sweep on the
+  `synths` stem moves every track in that stem. For per-track moves use the
+  engine-side tools above (song specs do not describe automation or sends yet).
 * Surge XT parameters are normalised 0..1, and only the catalogued subset is
   verified.
 
 Tests: `tests/test_composition_helpers.py`, `test_devices_catalog.py`,
-`test_mixing.py`, `test_song_builder.py` and `test_mcp_production.py`. The
+`test_mixing.py`, `test_song_builder.py`, `test_mcp_production.py`,
+`test_p3_protocol.py` and `test_cli_production.py`. The
 builder tests run a whole song against the serve emulator. With
 `EMU_CATALOG=1` it uses the catalog's parameters, and with
 `EMU_RENDER_AUDIO=1` it renders note bursts so that stems can be checked to

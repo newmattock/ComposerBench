@@ -17,6 +17,8 @@ The central idea is to give agents feedback on what they made: render a candidat
 - **Revision evidence:** explicit objectives, baseline/candidate renders, acceptance or rejection reasons, and persisted history.
 - **Agent interfaces:** a Python client, command-line interface, and a stdio MCP server exposing semantic music tools.
 - **Whole-song production:** declarative song specs (tracks from verified presets or explicit instruments, FX chains, parameters by name or label, notes from a score) built and rendered in MAGDA in one call, with a mix and one WAV per stem. A mix/master stage then adds automation, score-keyed sidechain, cuts, tape stop/stutter/reverse-swell edits, bus processing and a BS.1770 loudness target with a true-peak ceiling. See [agentic production](docs/AGENTIC_PRODUCTION.md).
+- **Balance and checks that stand in for listening:** parts placed by loudness level relative to the kick (every preset measured on the engine), a balance pass that renders each track and moves its fader, and warnings for a bridge louder than its chorus, a bass-heavy or mono mix, buried stems, and notes that ring through sections.
+- **Engine-side mixing (patched MAGDA, protocol 3):** mixer, sends, sidechain keys, automation lanes, clip edits, master-bus inserts and per-track renders.
 - **Composition helpers and checks:** drum-pattern strings, chord voicings, arpeggios, legato slides, a score format with sections and a chord track, avoid-note and range checks, and an offline catalog of every MAGDA device parameter with ranges and labels.
 
 This is an early developer toolkit, not a hosted song generator. An external agent supplies decisions; ComposerBench executes and evaluates them. The fake adapter is for development and tests, not musical production. The `benchmark` package is a placeholder: this release does not claim a standardized music benchmark or leaderboard.
@@ -47,7 +49,7 @@ composerbench devices magda_polysynth --text                    # parameter name
 
 ## Real audio with MAGDA
 
-Build or install [MAGDA](https://github.com/Conceptual-Machines/magda-core) separately. ComposerBench does not include its engine, plugins, samples, or binary. The adapter expects the CLI commands described in [the capability map](docs/MAGDA_CAPABILITY_MAP.md); persistent mode additionally requires `serve`. Some synth/effect features depend on your MAGDA build. Install FFmpeg on your PATH for LUFS/true-peak analysis, matched auditions, and pitched resampling.
+Build [MAGDA](https://github.com/Conceptual-Machines/magda-core) separately with the ComposerBench serve patch: [building MAGDA](docs/BUILDING_MAGDA.md) has the exact commit and the steps for Linux and macOS. ComposerBench does not include its engine, plugins, samples, or binary, and finds `magda_cli` through `$COMPOSERBENCH_CLI` or the usual `~/magda-core` build folders. Some synth/effect features depend on your MAGDA build. Install FFmpeg on your PATH for LUFS/true-peak analysis, matched auditions, and pitched resampling.
 
 ```sh
 python examples/sonic_workflow.py \
@@ -106,9 +108,10 @@ Without `COMPOSERBENCH_PROJECT`, agents create or open projects with `music_proj
 - [Editing, snapshots and revision workflow](docs/P0_AGENT_WORKFLOW.md)
 - [Audio diagnostics, auditioning and resampling](docs/SONIC_WORKFLOW.md)
 - [Visual audio review](docs/VISUAL_AUDIO_REVIEW.md)
-- [MAGDA capability map](docs/MAGDA_CAPABILITY_MAP.md) — historical build observations; inspect your own binary
+- [Building MAGDA for ComposerBench](docs/BUILDING_MAGDA.md) — commit, engine patch, Linux and macOS steps
+- [MAGDA capability map](docs/MAGDA_CAPABILITY_MAP.md) — historical observations of upstream MAGDA
 - [Rename and compatibility](docs/MIGRATION.md)
-- [Original design brief](docs/COMPOSERBENCH_MASTER_BUILD_PROMPT.md) — includes future ambitions, not a feature checklist
+- [Original design brief](docs/archive/COMPOSERBENCH_MASTER_BUILD_PROMPT.md) — archived; future ambitions, not a feature checklist
 
 Tests requiring MAGDA skip when its local binary is unavailable. Offline tests run without the DAW; the song-builder tests drive a protocol emulator (`tests/_serve_emulator.py`) through complete builds. Song examples beyond the quickstart and sonic workflow are experimental recipes and may require locally installed sample libraries or devices.
 

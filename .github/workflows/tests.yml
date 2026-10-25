@@ -6,6 +6,16 @@ on:
   pull_request:
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install ruff
+      - run: ruff check composerbench tests
+
   pytest:
     runs-on: ubuntu-latest
     strategy:
@@ -17,5 +27,8 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
-      - run: pip install -e ".[dev,mcp]"
-      - run: pytest -q
+      # FFmpeg runs the loudness, MP3 and audition tests that otherwise skip
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+      - run: pip install -e ".[dev,mcp,visual]"
+      # Engine tests skip here: building MAGDA takes about an hour (docs/BUILDING_MAGDA.md)
+      - run: pytest -q -rs

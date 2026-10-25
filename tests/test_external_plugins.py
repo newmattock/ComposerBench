@@ -64,32 +64,33 @@ class TestPluginsListContract:
         assert r.returncode == 0
 
 
+@pytest.fixture(scope="module")
+def some_plugin(tmp_path_factory):
+    if not CLI.exists():
+        pytest.skip("no binary")
+    from composerbench.adapter.magda_serve import MagdaServeAdapter
+
+    async def find():
+        daw = MagdaServeAdapter(CLI, tmp_path_factory.mktemp("plugin_scan") / "p.mgd")
+        await daw.initialize()
+        try:
+            plugs = await daw.list_plugins()
+        finally:
+            if daw._serve_proc is not None:
+                await daw.shutdown()
+        return plugs
+
+    plugs = asyncio.run(find())
+    if not plugs:
+        pytest.skip("no scanned plugins on this machine")
+    # Prefer an instrument (audibility-checkable); else any plugin.
+    instruments = [p for p in plugs if p.get("isInstrument")]
+    return (instruments or plugs)[0]
+
+
 @pytest.mark.slow
 class TestHostRoundTrip:
     """discover -> load -> inspect -> set param -> remove, on a real plugin."""
-
-    @pytest.fixture(scope="class")
-    def some_plugin(self):
-        if not CLI.exists():
-            pytest.skip("no binary")
-        from composerbench.adapter.magda_serve import MagdaServeAdapter
-
-        async def find():
-            daw = MagdaServeAdapter(CLI, "/tmp/mb_extplug_disc/p.mgd")
-            await daw.initialize()
-            try:
-                plugs = await daw.list_plugins()
-            finally:
-                if daw._serve_proc is not None:
-                    await daw.shutdown()
-            return plugs
-
-        plugs = asyncio.run(find())
-        if not plugs:
-            pytest.skip("no scanned plugins on this machine")
-        # Prefer an instrument (audibility-checkable); else any plugin.
-        instruments = [p for p in plugs if p.get("isInstrument")]
-        return (instruments or plugs)[0]
 
     def test_load_inspect_set_remove(self, tmp_path, some_plugin):
         from composerbench.adapter.magda_serve import MagdaServeAdapter

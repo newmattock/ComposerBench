@@ -345,7 +345,7 @@ async def cmd_mcp(ns: argparse.Namespace) -> int:
     """Register/inspect the MCP server for agent clients (Claude, Cursor)."""
     from composerbench.mcp import install as mcp_install
 
-    entry = mcp_install.server_entry(cli=ns.cli, workspace=ns.workspace)
+    entry = mcp_install.server_entry(cli=ns.cli, workspace=ns.workspace, toolsets=ns.toolsets)
     if ns.mcp_action == "config":
         print(json.dumps({"mcpServers": {ns.name: entry}}, indent=2))
         return 0
@@ -451,6 +451,8 @@ def build_parser() -> argparse.ArgumentParser:
     mcp.add_argument("--workspace", default=None,
                      help="where new projects go (default ~/Music/ComposerBench/projects)")
     mcp.add_argument("--dry-run", action="store_true", help="show changes without writing")
+    mcp.add_argument("--toolsets", default=None,
+                     help="limit the tools agents see: core,song,engine,audio,revision (default all)")
     mcp.set_defaults(func=cmd_mcp)
 
     from composerbench.cli.production import register

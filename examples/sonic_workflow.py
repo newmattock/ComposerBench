@@ -13,6 +13,7 @@ from composerbench.analysis.audition import compare_audio, inspect_audio
 from composerbench.analysis.wav import read_wav, write_float_wav
 from composerbench.client import ComposerBench
 from composerbench.production import resample_audio
+from composerbench.engine import discover_cli  # noqa: E402
 
 
 async def run(work, output, cli):
@@ -96,6 +97,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--work', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
-    parser.add_argument('--cli', type=Path, default=Path.home() / 'magda-core/cmake-build-debug/magda/daw/magda_cli_artefacts/Debug/magda_cli')
+    parser.add_argument('--cli', type=Path, default=discover_cli() or Path('magda_cli'))
     arguments = parser.parse_args()
     asyncio.run(run(arguments.work.resolve(), arguments.output.resolve(), arguments.cli))

@@ -49,7 +49,8 @@ def _search_path() -> str:
 
 
 def server_entry(python: str | None = None, cli: str | None = None,
-                 workspace: str | None = None, adapter: str = "magda_serve") -> dict[str, Any]:
+                 workspace: str | None = None, adapter: str = "magda_serve",
+                 toolsets: str | None = None) -> dict[str, Any]:
     from composerbench.engine import discover_cli
     from composerbench.mcp.server import DEFAULT_WORKSPACE
     found = discover_cli(cli)
@@ -61,6 +62,10 @@ def server_entry(python: str | None = None, cli: str | None = None,
            "PATH": _search_path()}
     if found:
         env["COMPOSERBENCH_CLI"] = str(found)
+    if toolsets and toolsets != "all":
+        from composerbench.mcp.server import enabled_tools
+        enabled_tools(toolsets)
+        env["COMPOSERBENCH_TOOLSETS"] = toolsets
     return {"command": python or sys.executable, "args": ["-m", "composerbench.mcp.server"], "env": env}
 
 

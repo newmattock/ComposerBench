@@ -11,6 +11,7 @@ Configuration (environment or flags):
     COMPOSERBENCH_CLI        magda_cli binary (default: discovered under ~/magda-core)
     COMPOSERBENCH_PROJECT    optional project to open at start
     COMPOSERBENCH_WORKSPACE  where music_project_new creates projects
+    COMPOSERBENCH_TOOLSETS   core,song,engine,audio,revision or all (default): which tools to list
                           (default ~/Music/ComposerBench/projects)
 
 "auto" uses the persistent MAGDA engine whenever the binary exists and only
@@ -53,30 +54,28 @@ SERVER_INFO = {"name": "composerbench", "version": "0.1.0"}
 DEFAULT_WORKSPACE = Path.home() / "Music" / "ComposerBench" / "projects"
 
 INSTRUCTIONS = """ComposerBench drives the MAGDA DAW (a real engine with synths, drum machines, \
-effects and hosted VST3/AU plugins) and renders audio you can analyze.
-1. music_status, then music_project_new (or music_project_open).
-2. music_track_create -> music_device_load (built-ins: magda_polysynth, magda_fm, 4osc, \
-magda_kick/snare/clap/hat/tom, magda_bell, magda_marimba) or music_plugins_list + \
-music_plugin_add (e.g. Surge XT) -> music_fx_add (magda_reverb, magda_delay, magda_eq, \
-magda_compressor, magda_saturator, magda_bitcrusher, magda_filter, magda_chorus, magda_utility...).
-3. Make ONE clip per track that spans the song (clips on the same track play one after \
-another; they never stack). Write each whole part with music_notes_set (one call per clip; \
-note starts are absolute beats).
-4. music_parameters_inspect / music_parameter_describe show ranges, units, choices and the \
-current meaning; music_parameter_set accepts numbers or labels such as "Hall", "1/8.", "Legato".
-5. music_render (keep peaks below 0 dBFS by lowering track volumes), then music_audio_inspect \
-/ music_audio_visual_review. Batches and revisions are transactional; music_project_save persists.
+effects and hosted VST3/AU plugins) and renders audio you can analyze. Start with music_status, \
+then music_project_new / music_project_open.
 
-Whole songs (fast path, see docs/AGENTIC_PRODUCTION.md):
-a. Write a score (notes per part, sections, chords; composerbench.composition helpers) and check it \
-with music_score_check (semitone clashes, ranges).
-b. Write a song spec: tracks = preset (music_presets) and/or instrument + FX with parameters by \
-name and label (music_device_catalog). music_song_check preflights it in milliseconds.
-c. music_song_build renders the mix and one WAV per stem as a background job; poll \
-music_job_status. Read session.json problems / readback_mismatch.
-d. music_mixdown turns the stems into a master: automation, score-keyed sidechain, cuts before \
-drops, tape stop/stutter/reverse swell, bus glue, LUFS target + true-peak ceiling. Iterate on the \
-mix spec (seconds per pass) using music_section_report numbers instead of guessing."""
+Main path - whole songs (docs/AGENTIC_PRODUCTION.md):
+1. Write a score (notes per part, sections with energy, chords; composerbench.composition \
+helpers) and check it with music_score_check (clashes, ranges, runaway notes).
+2. Write a song spec: tracks from music_presets and/or instruments + FX with parameters by name \
+and label (music_device_catalog). Give each part a level (LU relative to the kick: 808 -1.5, \
+hats -10) instead of guessing faders. music_song_check preflights it in milliseconds.
+3. music_song_build renders the mix and one WAV per stem (a background job; poll \
+music_job_status). Then music_balance (apply=true) measures every track and fixes its fader.
+4. music_mixdown turns the stems into a master (automation, score-keyed sidechain, cuts, tape \
+stop/stutter, bus glue, LUFS target + true-peak ceiling). Read its warnings (bridge louder than \
+the chorus, bass-heavy, mono, buried stems) and music_section_report numbers instead of guessing.
+
+Hands-on editing (toolset "engine"): music_track_create, music_device_load, music_notes_set \
+(one clip per track spanning the song; absolute beats), music_parameter_set (numbers or labels \
+such as "Hall", "1/8.", "Legato"), music_fx_add (also "master", position, sidechain_from), \
+music_mixer_set, music_automation_write, music_clip_edit, music_render / music_stems_render.
+Audio checks (toolset "audio"): music_audio_inspect, music_audio_compare, music_audio_visual_review.
+Plans, snapshots and measured revisions (toolset "revision"): music_intent_*, music_plan_*, \
+music_batch_edit, music_revision_run, music_critique. music_project_save persists."""
 
 _OBJ = {"type": "object", "properties": {}}
 
@@ -317,6 +316,37 @@ for tool in TOOLS:
     tool['outputSchema'] = {'type': 'object'}
 
 
+# Tool groups. COMPOSERBENCH_TOOLSETS (or --toolsets) limits what tools/list offers,
+# e.g. "core,song" for a whole-song agent; the default exposes everything.
+TOOLSETS: dict[str, set[str]] = {
+    "core": {"music_status", "music_capabilities", "music_project_new", "music_project_open",
+             "music_project_list", "music_project_save", "music_project_init", "music_project_inspect",
+             "music_track_inspect", "music_job_status"},
+    "song": {"music_device_catalog", "music_presets", "music_score_check", "music_song_check",
+             "music_song_build", "music_balance", "music_mixdown", "music_section_report"},
+    "engine": {"music_track_create", "music_clip_create", "music_notes_add", "music_notes_set",
+               "music_device_load", "music_devices_inspect", "music_parameters_inspect",
+               "music_parameter_describe", "music_parameter_set", "music_volume_set", "music_fx_add",
+               "music_plugins_list", "music_plugin_add", "music_render", "music_mixer_set",
+               "music_automation_write", "music_clip_edit", "music_stems_render"},
+    "audio": {"music_audio_inspect", "music_audio_compare", "music_audio_resample", "music_audio_visual_review"},
+    "revision": {"music_intent_read", "music_intent_update", "music_plan_read", "music_plan_update",
+                 "music_snapshot_create", "music_snapshot_restore", "music_roles_list", "music_role_apply",
+                 "music_batch_edit", "music_critique", "music_revision_run", "music_revision_history"},
+}
+
+
+def enabled_tools(toolsets: str | None) -> set[str]:
+    """Tool names for a comma-separated toolset list ("all" or empty = every tool; core is always on)."""
+    names = [t.strip() for t in (toolsets or "all").split(",") if t.strip()]
+    if not names or "all" in names:
+        return {t["name"] for t in TOOLS}
+    unknown = [n for n in names if n not in TOOLSETS]
+    if unknown:
+        raise ValueError(f"unknown toolsets {unknown}; choose from {sorted(TOOLSETS)} or all")
+    return set().union(TOOLSETS["core"], *(TOOLSETS[n] for n in names))
+
+
 @dataclass
 class ServerConfig:
     # Programmatic default stays the emulator (tests and embedders rely on it);
@@ -327,6 +357,7 @@ class ServerConfig:
     project_path: str = ""
     serve: bool = False
     workspace: str = ""
+    toolsets: str = "all"
 
 
 def effective_adapter(cfg: ServerConfig) -> str:
@@ -423,7 +454,8 @@ class MCPServer:
         if method in ("notifications/initialized", "notifications/cancelled"):
             return None
         if method == "tools/list":
-            return self._result(req_id, {"tools": TOOLS})
+            enabled = enabled_tools(self.cfg.toolsets)
+            return self._result(req_id, {"tools": [t for t in TOOLS if t["name"] in enabled]})
         if method == "tools/call":
             params = request.get("params") or {}
             return self._result(req_id, self._call_tool(
@@ -454,6 +486,9 @@ class MCPServer:
             import jsonschema
             spec = next((t for t in TOOLS if t["name"] == name), None)
             if spec is None: raise KeyError(f"unknown tool: {name}")
+            if name not in enabled_tools(self.cfg.toolsets):
+                raise KeyError(f"{name} is not in the enabled toolsets ({self.cfg.toolsets}); "
+                               f"set COMPOSERBENCH_TOOLSETS to include it")
             jsonschema.validate(args, spec["inputSchema"])
             handler = getattr(self, f"_tool_{name}", None)
             if handler is None:
@@ -691,7 +726,7 @@ class MCPServer:
         adapter = effective_adapter(self.cfg)
         out = {'adapter': adapter, 'cli': str(cli) if cli else None,
                'project': self.project_path, 'workspace': str(self._workspace()),
-               'server_version': SERVER_INFO['version']}
+               'server_version': SERVER_INFO['version'], 'toolsets': self.cfg.toolsets}
         if adapter == 'fake':
             out['warning'] = ('fake emulator: renders a test tone and cannot make music; '
                               'build magda_cli or set COMPOSERBENCH_CLI')
@@ -914,10 +949,13 @@ def config_from_env(argv: list[str] | None = None) -> ServerConfig:
     ap.add_argument('--cli', default=os.environ.get('COMPOSERBENCH_CLI', ''))
     ap.add_argument('--project', default=os.environ.get('COMPOSERBENCH_PROJECT', ''))
     ap.add_argument('--workspace', default=os.environ.get('COMPOSERBENCH_WORKSPACE', ''))
+    ap.add_argument('--toolsets', default=os.environ.get('COMPOSERBENCH_TOOLSETS', 'all'),
+                    help=f"comma-separated: {', '.join(TOOLSETS)} or all")
     ns = ap.parse_args(argv)
+    enabled_tools(ns.toolsets)          # fail fast on a typo
     serve_env = os.environ.get('COMPOSERBENCH_SERVE', '').lower()
     return ServerConfig(adapter=ns.adapter, cli_path=ns.cli, project_path=ns.project,
-                        workspace=ns.workspace, serve=serve_env not in ('0', 'false'))
+                        workspace=ns.workspace, serve=serve_env not in ('0', 'false'), toolsets=ns.toolsets)
 
 
 def serve_stdio(cfg: ServerConfig | None = None) -> int:
