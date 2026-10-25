@@ -38,7 +38,10 @@ git submodule update --init --depth 1 third_party/tracktion_engine third_party/J
 git -C third_party/faust submodule update --init --depth 1 libraries   # stdfaust.lib for the compiled devices
 
 cmake -G Ninja -B build-linux -DCMAKE_BUILD_TYPE=Release -DMAGDA_BUILD_TESTS=OFF -DMAGDA_HAVE_CLAP=OFF
-ninja -C build-linux magda_cli
+ninja -C build-linux magda_cli magda_plugin_scanner
+# the engine looks for its plugin scanner beside itself
+ln -sf ../../magda_plugin_scanner_artefacts/Release/magda_plugin_scanner \
+  build-linux/magda/daw/magda_cli_artefacts/Release/magda_plugin_scanner
 build-linux/magda/daw/magda_cli_artefacts/Release/magda_cli boot   # "MAGDA engine booted headless"
 ```
 
@@ -52,7 +55,8 @@ Notes from the first Linux build:
   wasmtime C API from GitHub releases.
 - Prefer Release: Debug Faust devices render several times slower.
 - Hosted plugins: install them as usual (Surge XT's `.deb` puts its VST3 in
-  `/usr/lib/vst3`) and run `composerbench plugins --rescan`.
+  `/usr/lib/vst3`), then `composerbench plugins scan`. Without
+  `magda_plugin_scanner` beside `magda_cli` the scan finds nothing.
 
 ## macOS
 

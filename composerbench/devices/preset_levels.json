@@ -1,5 +1,5 @@
 {
- "engine": "magda_cli ebd93db0 + ComposerBench serve patch (Release, Linux)",
+ "engine": "magda_cli ebd93db0 + ComposerBench serve patch (Release, Linux); Surge XT 1.3.4 VST3",
  "generated": "2026-10-25",
  "probe": {
   "bpm": 120.0,
@@ -120,10 +120,12 @@
    "lufs_at_unity": -18.47,
    "role": "texture",
    "level": -8.0
+  },
+  "supersaw_surge": {
+   "lufs_at_unity": -17.82,
+   "role": "chords",
+   "level": -1.5
   }
  },
- "problems": [
-  "supersaw_surge: RuntimeError: plugin 'Surge XT' not found; scanned: []",
-  "stem supersaw_surge: none of its tracks was built; not rendered"
- ]
+ "problems": []
 }

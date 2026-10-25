@@ -866,6 +866,13 @@ class MagdaServeAdapter(MagdaCliAdapter):
         return info
 
     # -------------------------------------------------- external plugins ----
+    async def scan_plugins(self) -> list[dict]:
+        """Rescan AU/VST3/LV2 plugins (slow the first time; needs magda_plugin_scanner beside
+        magda_cli) and return the refreshed list."""
+        await self._exec("scan-plugins", save=False)
+        self._plugin_cache = None
+        return await self.list_plugins()
+
     async def list_plugins(self, format_filter: str | None = None) -> list[dict]:
         """Scanned AU/VST3/LV2 plugins: [{id,name,format,isInstrument}]."""
         if self._plugin_cache is None:
@@ -887,6 +894,7 @@ class MagdaServeAdapter(MagdaCliAdapter):
         but it is not saved and a snapshot restore drops it.
         """
         tid = await self._numeric_track_id(track_id)
+        plugin = await self.resolve_plugin(plugin)
         reply = await self._request({
             "op": "add_plugin",
             "trackId": tid,
@@ -906,6 +914,25 @@ class MagdaServeAdapter(MagdaCliAdapter):
                 "note": "hosted outside the project model by this engine: "
                         "not saved, gone after a restart or snapshot restore"}
         return device
+
+    # VST3 and AU report parameter labels and save their state; LV2 builds of the
+    # same plugin often expose bare numbers (Surge XT's filter types read "0.1").
+    PLUGIN_FORMAT_PREFERENCE = ("VST3", "AudioUnit", "AU", "CLAP", "LV2")
+
+    async def resolve_plugin(self, plugin: str) -> str:
+        """A plugin id for ``plugin`` (an id or a name). When a name matches several
+        formats, prefer VST3, then AU, then LV2, instead of whichever the engine lists first."""
+        plugs = await self.list_plugins()
+        if any(p.get("id") == plugin for p in plugs):
+            return plugin
+        named = [p for p in plugs if p.get("name") == plugin]
+        if len(named) < 2:
+            return plugin
+
+        def rank(p):
+            fmt = str(p.get("format", ""))
+            return self.PLUGIN_FORMAT_PREFERENCE.index(fmt) if fmt in self.PLUGIN_FORMAT_PREFERENCE else 99
+        return min(named, key=rank)["id"]
 
     async def remove_plugin(self, device_id: int) -> None:
         await self._request({"op": "remove_device", "deviceId": int(device_id)})

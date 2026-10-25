@@ -90,7 +90,7 @@ python examples/glitterstatic.py --out ./outputs/glitterstatic
 
 ## Connect an agent through MCP
 
-`composerbench mcp install` registers the server with Claude Desktop, Claude Code and Cursor ([details](docs/AGENT_ACCESS.md)). To configure a client by hand, launch `python -m composerbench.mcp.server` with these environment variables:
+`composerbench mcp install` registers the server with Claude Desktop, Claude Code and Cursor ([details](docs/AGENT_ACCESS.md)); `--toolsets song,audio` gives a whole-song agent a smaller tool list. To configure a client by hand, launch `python -m composerbench.mcp.server` with these environment variables:
 
 ```sh
 COMPOSERBENCH_ADAPTER=magda_serve \

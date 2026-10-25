@@ -124,7 +124,8 @@ async def cmd_presets(ns: argparse.Namespace) -> int:
         if only:   # merge a partial run into the existing file
             merged = levels.load_calibration()
             merged.setdefault("presets", {}).update(result["presets"])
-            result = {**merged, "generated": result["generated"], "engine": result["engine"]}
+            result = {**merged, "generated": result["generated"], "engine": result["engine"],
+                      "problems": result["problems"]}
         levels.CALIBRATION_FILE.write_text(json.dumps(result, indent=1) + "\n")
         _print({"written": str(levels.CALIBRATION_FILE), "presets": result["presets"],
                 "problems": result.get("problems", [])})

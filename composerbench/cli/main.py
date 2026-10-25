@@ -270,6 +270,8 @@ async def cmd_plugins(ns: argparse.Namespace) -> int:
         # boot against a scratch project when the given path is absent.
         if not Path(ns.project).exists():
             await daw.initialize()
+        if ns.action == "scan":
+            await daw.scan_plugins()
         plugs = await daw.list_plugins(format_filter=ns.format)
     finally:
         if daw._serve_proc is not None:
@@ -416,7 +418,8 @@ def build_parser() -> argparse.ArgumentParser:
     srv.set_defaults(func=cmd_serve)
 
     plg = sub.add_parser("plugins", help="list scanned AU/VST3/LV2 plugins")
-    plg.add_argument("action", nargs="?", default="list", choices=["list"])
+    plg.add_argument("action", nargs="?", default="list", choices=["list", "scan"],
+                     help="list, or scan to rescan installed plugins first")
     plg.add_argument("--format", help="filter by format (vst3, au, lv2)")
     plg.add_argument("--json", action="store_true", dest="json_flag",
                      help="machine-readable output")

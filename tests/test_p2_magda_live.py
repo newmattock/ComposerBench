@@ -72,11 +72,10 @@ async def test_internal_choice_labels_round_trip(tmp_path):
 async def test_hosted_plugin_label_and_persistence(tmp_path):
     daw, feats = await _session(tmp_path)
     try:
-        surge = next((p for p in await daw.list_plugins() if p.get("name") == "Surge XT"), None)
-        if surge is None:
+        if not any(p.get("name") == "Surge XT" for p in await daw.list_plugins()):
             pytest.skip("Surge XT is not installed")
         track = await daw.create_track("saws")
-        dev = await daw.add_plugin(track.id, surge["id"], as_instrument=True)
+        dev = await daw.add_plugin(track.id, "Surge XT", as_instrument=True)   # VST3 over LV2
         params = await daw.get_parameters(track.id, dev)
         assert any(p.get("owner") == "host" for p in params.values()), "wrapper pair not flagged"
         if feats.get("paramInfo"):

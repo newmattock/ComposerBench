@@ -181,3 +181,39 @@ that does not know `describe` is protocol 1.
 
 Consecutive `add-midi-note` commands for one clip inside an `exec` are also
 coalesced into a single undo step on protocol-2 builds.
+
+## Serve protocol 3 reference
+
+Protocol 3 adds engine-side mixing. `describe` reports `"protocol": 3` and these
+feature flags: `mixer`, `sends`, `sidechain`, `automation`, `clipOps`,
+`clipOverlapPolicy`, `clipLoop`, `stems`, `masterBus`, `catalog`, `commandList`.
+
+| Request | Effect |
+| --- | --- |
+| `{"op":"mixer","trackId":N\|"master","volume"\|"volumeDb","pan","mute","solo","name"}` | channel settings; replies with the channel (`volumeDb`, `sends`, ...) |
+| `{"op":"send","from","to","level"\|"levelDb","remove"?}` | post-fader send to an aux/group track; feedback loops are refused |
+| `{"op":"add_fx","trackId"\|"master","plugin","position":"pre"\|"post"}` | insert a built-in effect (master bus included) |
+| `{"op":"sidechain","deviceId","source"\|null,"type":"midi"\|"audio"}` | key a pre-fader device from another track |
+| `{"op":"automation","target":{"kind":"volume"\|"pan"\|"send"\|"param",...},"points":[{"beat","value","curve"?}],"mode"}` | a lane in real units (dB, -1..1, native range or labels) |
+| `{"op":"clip","action":"create"\|"move"\|"resize"\|"duplicate"\|"rename"\|"delete"\|"loop",...,"overlap"}` | arrangement edits at absolute beats |
+| `{"op":"render","wav","tracks":[ids]}` | render only those tracks (post-fader); an empty list means every track, so ComposerBench never sends one |
+| `{"op":"render_stems","dir","tracks"?}` | one WAV per channel |
+| `{"op":"catalog"}` | built-in instruments and effects |
+
+On the Python side these are `set_mixer`, `set_send`, `add_effect`,
+`set_sidechain`, `write_automation`, `clip_edit`, `render_stems` and
+`engine_catalog` on `MagdaServeAdapter`; over MCP `music_mixer_set`,
+`music_fx_add` (master / position / sidechain_from), `music_automation_write`,
+`music_clip_edit`, `music_stems_render` and `music_device_catalog` with
+`live: true`. `examples/p3_engine_smoke.py` exercises every op on a real
+engine (36 checks).
+
+## Toolsets
+
+`COMPOSERBENCH_TOOLSETS` (or `composerbench mcp install --toolsets ...`) limits
+the tools a client sees: `core` (status, projects, jobs - always on), `song`
+(catalog, presets, score/song checks, build, balance, mixdown, section report),
+`engine` (tracks, devices, notes, parameters, mixer, automation, clips, renders),
+`audio` (inspect, compare, resample, visual review) and `revision` (intent,
+plan, snapshots, roles, batches, measured revisions). The default is `all`.
+A whole-song agent does well with `song,audio`.

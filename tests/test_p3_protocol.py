@@ -208,3 +208,20 @@ def test_level_sets_the_fader_from_calibration():
     assert kick.volume_source == "preset level" and pad.volume_source == "level"
     assert fixed.volume == 0.3 and fixed.volume_source == "volume"
     assert x.volume == 0.5 and x.volume_source == "default"
+
+
+async def test_plugin_names_prefer_vst3_over_lv2(tmp_path):
+    fake_cli = tmp_path / "magda_cli"
+    fake_cli.write_text("#!/bin/sh\n")
+    fake_cli.chmod(0o755)
+    daw = MagdaServeAdapter(fake_cli, tmp_path / "p.mgd")
+    plugs = [{"id": "LV2-Surge XT-1", "name": "Surge XT", "format": "LV2"},
+             {"id": "VST3-Surge XT-2", "name": "Surge XT", "format": "VST3"},
+             {"id": "LV2-Only-3", "name": "Only", "format": "LV2"}]
+
+    async def listing(format_filter=None):
+        return plugs
+    daw.list_plugins = listing
+    assert await daw.resolve_plugin("Surge XT") == "VST3-Surge XT-2"
+    assert await daw.resolve_plugin("LV2-Surge XT-1") == "LV2-Surge XT-1"     # an explicit id is kept
+    assert await daw.resolve_plugin("Only") == "Only"

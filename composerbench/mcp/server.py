@@ -734,6 +734,11 @@ class MCPServer:
             out['next'] = 'music_project_new or music_project_open'
         else:
             out['features'] = await self.client.features()
+            if adapter != 'fake' and out['features'].get('protocol', 1) < 3:
+                out['hint'] = ('this magda_cli speaks serve protocol '
+                               f"{out['features'].get('protocol', 1)}; music_balance, music_mixer_set, "
+                               'music_automation_write, music_clip_edit and fast stem renders need protocol 3 '
+                               '(docs/BUILDING_MAGDA.md)')
         return self._tool_text(out)
 
     async def _tool_music_project_new(self, args):
