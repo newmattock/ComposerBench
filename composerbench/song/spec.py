@@ -65,7 +65,11 @@ class TrackSpec(BaseModel):
     fx: list[DeviceSpec] | None = Field(default=None, description="replaces the preset's chain")
     fx_params: dict[int, dict[str, ParamValue]] = Field(default_factory=dict,
                                                         description="merged into chain entries by index")
-    volume: float | None = Field(default=None, ge=0, le=2)
+    volume: float | None = Field(default=None, ge=0, le=2, description="linear fader; wins over level")
+    level: float | None = Field(default=None, ge=-40, le=12,
+                                description="loudness in LU relative to the kick (0); sets the fader from the "
+                                            "preset's calibrated loudness (devices/preset_levels.json)")
+    pan: float | None = Field(default=None, ge=-1, le=1, description="engine pan (protocol 3)")
     stem: str | None = None
     part: str | None = Field(default=None, description="score part to play (default: track name)")
     notes: list[NoteSpec] | None = None
@@ -88,6 +92,8 @@ class SongSpec(BaseModel):
     beats_per_bar: int = 4
     length_beats: float | None = Field(default=None, gt=0)
     score: str | dict | None = None
+    reference_lufs: float = Field(default=-23.5, ge=-40, le=-6,
+                                  description="loudness a level-0 part (the kick) aims for in the engine render")
     tracks: list[TrackSpec] = Field(min_length=1)
     render: RenderSpec = Field(default_factory=RenderSpec)
     out_dir: str | None = None
@@ -109,6 +115,10 @@ class ResolvedTrack(BaseModel):
     stem: str
     notes: list[NoteSpec]
     preset: str | None = None
+    level: float | None = None
+    pan: float | None = None
+    volume_source: str = "default"   # volume | level | preset level | preset volume | default
+    warnings: list[str] = Field(default_factory=list)
 
 
 def load_spec(source: str | Path | dict) -> tuple[SongSpec, Path]:
@@ -133,6 +143,8 @@ def load_score(spec: SongSpec, base: Path) -> Score | None:
 
 def resolve(spec: SongSpec, score: Score | None = None) -> list[ResolvedTrack]:
     """Presets + overrides -> concrete tracks with their notes."""
+    from composerbench.devices.levels import load_calibration
+    calibration = load_calibration()
     out = []
     for t in spec.tracks:
         base = get_preset(t.preset) if t.preset else {}
@@ -159,10 +171,32 @@ def resolve(spec: SongSpec, score: Score | None = None) -> list[ResolvedTrack]:
             notes = []
         if t.transpose:
             notes = [n.model_copy(update={"pitch": n.pitch + t.transpose}) for n in notes]
-        out.append(ResolvedTrack(name=t.name, instrument=inst, fx=chain,
-                                 volume=t.volume if t.volume is not None else base.get("volume", 0.5),
+        volume, source, level, warnings = _fader(t, base, spec.reference_lufs, calibration)
+        out.append(ResolvedTrack(name=t.name, instrument=inst, fx=chain, volume=volume, volume_source=source,
+                                 level=level, pan=t.pan, warnings=warnings,
                                  stem=t.stem or base.get("stem", "other"), notes=notes, preset=t.preset))
     return out
+
+
+def _fader(t: TrackSpec, base: dict, reference_lufs: float, calibration: dict) -> tuple[float, str, float | None, list]:
+    """Fader for a track: explicit volume, else its level (or its preset's level) through the
+    preset's calibrated loudness, else the preset's stored volume."""
+    from composerbench.devices import levels
+    if t.volume is not None:
+        return t.volume, "volume", t.level, []
+    level = t.level if t.level is not None else levels.default_level(t.preset, base.get("role"))
+    unity = levels.lufs_at_unity(t.preset, calibration)
+    warnings = []
+    if level is not None and unity is not None:
+        volume, clamped = levels.volume_for_level(level, unity, reference_lufs)
+        if clamped:
+            warnings.append(f"{t.name}: level {level} needs more than the fader's +6 dB; clamped to 2.0")
+        return volume, ("level" if t.level is not None else "preset level"), level, warnings
+    if t.level is not None:
+        warnings.append(f"{t.name}: level ignored - preset {t.preset!r} has no calibrated loudness")
+    if base.get("volume") is not None:
+        return base["volume"], "preset volume", level, warnings
+    return 0.5, "default", level, warnings
 
 
 def song_length(spec: SongSpec, score: Score | None, tracks: list[ResolvedTrack]) -> float:

@@ -9,6 +9,9 @@ MagdaServeAdapter without the real engine:
                     labels); external plugins live outside the device model
                     and are addressed by name only
     EMU_PROTOCOL=2  protocol 2 (default)
+    EMU_PROTOCOL=3  protocol 3: mixer / send / sidechain / automation / clip /
+                    add_fx (master bus) / catalog / render_stems, renders of
+                    selected tracks
     EMU_CATALOG=1   every internal device gets its full parameter list from
                     ComposerBench's device catalog (otherwise only devices missing
                     from DEVICE_SPECS do)
@@ -25,6 +28,7 @@ Every request is tallied in <project>.emu.json so tests can assert how the
 adapter talked to the engine (requests per op, saves, notes per request).
 """
 import json
+import math
 import os
 import socket
 import sys
@@ -102,7 +106,10 @@ def render_audio(project, req):
     n = int((end - start) * spb * sr)
     buf = [0.0] * n
     burst = int(0.05 * sr)
+    only = set(int(x) for x in req["tracks"]) if req.get("tracks") is not None else None
     for t in project.tracks:
+        if only is not None and t["id"] not in only:
+            continue
         if t["volume"] <= 0 or not any(d["trackId"] == t["id"] and d["type"] == "instrument"
                                        for d in project.devices):
             continue
@@ -150,6 +157,8 @@ class Project:
         self.clips = []           # {id, trackId, startBeat, lengthBeats, notes[]}
         self.devices = []         # {id, trackId, name, type, format, params[]}
         self.ext = {}             # protocol-1 plugins outside the model: id -> params[]
+        self.master = {"id": "master", "name": "master", "volume": 1.0}
+        self.lanes = []           # protocol-3 automation lanes
         self.next_id = 1
         if path.exists():
             self._load()
@@ -298,6 +307,94 @@ class Project:
             else:
                 raise ValueError(f"Unknown command: {cmd}")
 
+    @staticmethod
+    def channel(t):
+        vol = float(t.get("volume", 1.0))
+        return {"id": t["id"], "name": t["name"], "volume": vol,
+                "volumeDb": 20 * math.log10(vol) if vol > 0 else -120.0, "pan": t.get("pan", 0.0),
+                "muted": bool(t.get("mute")), "soloed": bool(t.get("solo")), "sends": t.get("sends", [])}
+
+    def handle_p3(self, op, req):
+        """Protocol-3 ops; None when ``op`` is not one of them."""
+        def track(ref):
+            if ref == "master":
+                return self.master
+            return next(t for t in self.tracks if t["id"] == int(ref))
+        if op == "mixer":
+            self.tally(op)
+            t = track(req["trackId"])
+            if "volumeDb" in req:
+                t["volume"] = 10 ** (float(req["volumeDb"]) / 20)
+            for key in ("volume", "pan", "mute", "solo"):
+                if key in req:
+                    t[key] = req[key]
+            return {"ok": True, "track": self.channel(t)}
+        if op == "send":
+            self.tally(op)
+            src, dst = track(req["from"]), track(req["to"])
+            sends = [x for x in src.setdefault("sends", []) if x["to"] != dst["id"]]
+            if not req.get("remove"):
+                level = 10 ** (float(req["levelDb"]) / 20) if "levelDb" in req else float(req.get("level", 1.0))
+                sends.append({"to": dst["id"], "level": level, "levelDb": 20 * math.log10(level)})
+            src["sends"] = sends
+            if any(x["to"] == src["id"] for x in dst.get("sends", [])):
+                return {"ok": False, "error": f"track {dst['id']} already feeds track {src['id']}"}
+            return {"ok": True, "track": self.channel(src)}
+        if op == "add_fx":
+            self.tally(op)
+            tid = req["trackId"]
+            dev = self.add_device(0 if tid == "master" else int(tid), req["plugin"], "effect")
+            dev["position"] = req.get("position", "pre")
+            return {"ok": True, "device": dev["id"], "pluginId": req["plugin"], "position": dev["position"]}
+        if op == "sidechain":
+            self.tally(op)
+            dev = next(d for d in self.devices if d["id"] == int(req["deviceId"]))
+            if dev.get("position") == "post":
+                return {"ok": False, "error": f"device {dev['id']} sits after the fader"}
+            dev["sidechain"] = None if req.get("source") is None else {"type": req.get("type", "midi"),
+                                                                       "source": req["source"]}
+            return {"ok": True, "deviceId": dev["id"], "sidechain": dev["sidechain"]}
+        if op == "automation":
+            self.tally(op)
+            self.lanes.append({"target": req["target"], "points": req.get("points", []), "mode": req.get("mode")})
+            return {"ok": True, "target": req["target"], "laneId": len(self.lanes), "points": len(req.get("points", []))}
+        if op == "clip":
+            self.tally(op)
+            action = req["action"]
+            if action == "create":
+                c = {"id": self.nid(), "trackId": int(req["trackId"]), "startBeat": float(req["start"]),
+                     "lengthBeats": float(req["length"]), "notes": [], "name": req.get("name", "")}
+                self.clips.append(c)
+                return {"ok": True, "clip": c}
+            c = self.clip(int(req["clipId"]))
+            if action == "move":
+                c["startBeat"] = float(req.get("start", c["startBeat"]))
+                if "trackId" in req:
+                    c["trackId"] = int(req["trackId"])
+            elif action == "delete":
+                self.clips.remove(c)
+            elif action == "loop":
+                c["loopLengthBeats"] = float(req["loopLength"])
+                c["lengthBeats"] = float(req.get("length", c["lengthBeats"]))
+            return {"ok": True, "clip": c}
+        if op == "catalog":
+            self.tally(op)
+            return {"ok": True, "instruments": [{"id": "magda_polysynth"}], "effects": [{"id": "magda_reverb"}],
+                    "externalPlugins": len(PLUGINS)}
+        if op == "render_stems":
+            self.tally(op)
+            out = Path(req["dir"])
+            out.mkdir(parents=True, exist_ok=True)
+            ids = [int(x) for x in req.get("tracks") or [t["id"] for t in self.tracks]]
+            stems = []
+            for i, tid in enumerate(ids, 1):
+                t = track(tid)
+                wav = out / f"{i:02d}-{t['name']}.wav"
+                self.handle({**req, "op": "render", "wav": str(wav), "tracks": [tid]})
+                stems.append({"trackId": tid, "name": t["name"], "file": str(wav)})
+            return {"ok": True, "stems": stems}
+        return None
+
     def handle(self, req):
         op = req.get("op")
         if op == "ping":
@@ -305,9 +402,16 @@ class Project:
             return {"ok": True}
         if op == "describe" and PROTOCOL >= 2:
             self.tally(op)
-            return {"ok": True, "protocol": 2, "magdaVersion": "emulator",
-                    "features": {"execSaveFlag": True, "bulkNotes": True, "paramLabels": True,
-                                 "paramInfo": True, "pluginPersistence": True, "extParamIndex": True}}
+            features = {"execSaveFlag": True, "bulkNotes": True, "paramLabels": True,
+                        "paramInfo": True, "pluginPersistence": True, "extParamIndex": True}
+            if PROTOCOL >= 3:
+                features.update({k: True for k in ("mixer", "sends", "sidechain", "automation", "clipOps",
+                                                   "clipLoop", "stems", "masterBus", "catalog")})
+            return {"ok": True, "protocol": min(PROTOCOL, 3), "magdaVersion": "emulator", "features": features}
+        if PROTOCOL >= 3:
+            reply = self.handle_p3(op, req)
+            if reply is not None:
+                return reply
         if op == "exec":
             tokens = req.get("commands", [])
             self.tally(op, notes=tokens.count("add-midi-note"), tokens=len(tokens))

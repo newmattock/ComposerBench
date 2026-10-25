@@ -94,7 +94,7 @@ def _is_internal_fx(plugin_id: str) -> bool:
 
 # Requests that never change project state; everything else invalidates caches.
 READ_ONLY_OPS = frozenset({"ping", "dump", "plugins", "ext_params", "describe",
-                           "param_info", "render", "save"})
+                           "param_info", "render", "render_stems", "catalog", "save"})
 
 
 class MagdaServeAdapter(MagdaCliAdapter):
@@ -418,13 +418,24 @@ class MagdaServeAdapter(MagdaCliAdapter):
         return [{"start": round(rel, 6), "length": float(n.duration),
                  "pitch": int(n.pitch), "velocity": int(n.velocity)} for rel, n in rel_notes]
 
+    async def supports_isolated_render(self) -> bool:
+        await self._ensure_session()
+        return self._feature("stems")
+
     async def render(self, request: RenderRequest) -> Path:
-        if request.track_ids is not None:
-            from composerbench.errors import UnsupportedOperation
-            raise UnsupportedOperation(reason='isolated-track-render-not-supported; refusing to return a full mix as a stem')
         out = Path(request.output_path)
         payload: dict = {"op": "render", "wav": str(out),
                          "bitDepth": request.bit_depth}
+        if request.track_ids is not None:
+            if not await self.supports_isolated_render():
+                from composerbench.errors import UnsupportedOperation
+                raise UnsupportedOperation(
+                    reason='isolated-track-render-not-supported; refusing to return a full mix as a stem',
+                    hint='needs MAGDA serve protocol 3 (the "stems" feature)')
+            if not request.track_ids:
+                # the engine reads an empty list as "every track": never return a mix as a stem
+                raise ValueError("render with an empty track list")
+            payload["tracks"] = [await self._numeric_track_id(t) for t in request.track_ids]
         if request.start_beats is not None:
             payload["from"] = f"{request.start_beats}beats"
         if request.length_beats is not None:
@@ -433,6 +444,127 @@ class MagdaServeAdapter(MagdaCliAdapter):
         if not out.exists():
             raise RenderFailed(output=str(out))
         return out
+
+    # ------------------------------------------------------------- protocol 3 --
+    # Engine-side mixing: channels, sends, sidechain keys, automation lanes,
+    # arrangement edits, master inserts and one-pass stem renders. Each method
+    # checks the engine's feature flag and fails with a clear hint on older
+    # binaries instead of sending an op the engine does not know.
+
+    async def _need(self, feature: str, what: str) -> None:
+        await self._ensure_session()
+        if not self._feature(feature):
+            from composerbench.errors import UnsupportedOperation
+            raise UnsupportedOperation(
+                reason=f"{what} needs MAGDA serve protocol 3 (feature {feature!r})",
+                hint="build magda_cli with the ComposerBench engine patch (docs/BUILDING_MAGDA.md)")
+
+    async def _channel(self, track: str | int) -> int | str:
+        if str(track).lower() == "master":
+            return "master"
+        return int(track) if isinstance(track, int) else await self._numeric_track_id(str(track))
+
+    @staticmethod
+    def _channel_of(reply: dict) -> dict:
+        """The channel document of a mixer/send reply (id, volume, volumeDb, pan, sends...)."""
+        return reply.get("track") or reply.get("master") or reply
+
+    @staticmethod
+    def _clean(payload: dict) -> dict:
+        return {k: v for k, v in payload.items() if v is not None}
+
+    async def set_mixer(self, track: str | int, *, volume: float | None = None, volume_db: float | None = None,
+                        pan: float | None = None, mute: bool | None = None, solo: bool | None = None,
+                        name: str | None = None) -> dict:
+        """Channel settings for a track or "master" (volume linear 0..2 or in dB, pan -1..1).
+        Returns the channel: id, name, volume, volumeDb, pan, muted, soloed, sends."""
+        await self._need("mixer", "mixer")
+        return self._channel_of(await self._request(self._clean({
+            "op": "mixer", "trackId": await self._channel(track), "volume": volume, "volumeDb": volume_db,
+            "pan": pan, "mute": mute, "solo": solo, "name": name, "save": self.autosave})))
+
+    async def set_send(self, source: str | int, dest: str | int, *, level_db: float | None = None,
+                       level: float | None = None, remove: bool = False) -> dict:
+        """Post-fader send from one track to an aux/group track (remove=True deletes it)."""
+        await self._need("sends", "sends")
+        return self._channel_of(await self._request(self._clean({
+            "op": "send", "from": await self._channel(source), "to": await self._channel(dest),
+            "levelDb": level_db, "level": level, "remove": remove or None, "save": self.autosave})))
+
+    async def add_effect(self, track: str | int, plugin: str, *, position: str = "pre",
+                         name: str | None = None) -> int:
+        """Insert a built-in effect on a track or on the master bus; returns its device id.
+        position "post" puts it after the fader (cannot be sidechained or automated)."""
+        await self._need("masterBus", "add_fx")
+        reply = await self._request(self._clean({
+            "op": "add_fx", "trackId": await self._channel(track), "plugin": plugin, "name": name,
+            "position": position, "save": self.autosave}))
+        return int(reply["device"])
+
+    async def set_sidechain(self, device_id: int, source: str | int | None, kind: str = "midi") -> dict:
+        """Key a pre-fader device (e.g. the "sidechain" ducker or a compressor) from another track;
+        source=None clears it. kind "midi" keys from notes, "audio" from the source's audio."""
+        await self._need("sidechain", "sidechain")
+        src = None if source is None else await self._channel(source)
+        return await self._request({"op": "sidechain", "deviceId": int(device_id), "source": src,
+                                    "type": kind, "save": self.autosave})
+
+    async def write_automation(self, target: dict, points: list[dict], mode: str = "replace",
+                               unit: str | None = None) -> dict:
+        """Write an automation lane in real units.
+
+        target: {"kind": "volume"|"pan", "track": ...}, {"kind": "send", "track": ..., "to": ...}
+        or {"kind": "param", "device": id, "param": name|index}. points: [{"beat", "value",
+        "curve"?}] - volume in dB, pan -1..1, parameters in their native range or as labels.
+        mode: replace | add | range | clear.
+        """
+        await self._need("automation", "automation")
+        tgt = {"kind": target["kind"]}
+        if "track" in target:
+            tgt["trackId"] = await self._channel(target["track"])
+        if "to" in target:
+            tgt["to"] = await self._channel(target["to"])
+        if "device" in target:
+            tgt["deviceId"] = int(target["device"])
+        if "param" in target:
+            tgt["param"] = target["param"]
+        return await self._request(self._clean({"op": "automation", "target": tgt, "points": points,
+                                                "mode": mode, "unit": unit, "save": self.autosave}))
+
+    async def clip_edit(self, action: str, *, clip: str | int | None = None, track: str | int | None = None,
+                        **fields) -> dict:
+        """Arrangement edits at absolute beats: create, move, resize, duplicate, rename, delete, loop.
+
+        fields are passed through (start, length, name, loopLength, overlap="error"|"replace"|"shift").
+        """
+        await self._need("clipOps", "clip edits")
+        payload = {"op": "clip", "action": action, "save": self.autosave, **fields}
+        if clip is not None:
+            payload["clipId"] = int(str(clip).removeprefix("clip:"))
+        if track is not None:
+            payload["trackId"] = await self._channel(track)
+        reply = await self._request(payload)
+        return reply.get("clip", reply)
+
+    async def render_stems(self, out_dir: Path | str, track_ids: list[str] | None = None,
+                           start_beats: float | None = None, length_beats: float | None = None,
+                           bit_depth: int = 24) -> list[dict]:
+        """One WAV per channel (default: every channel feeding the master) in out_dir."""
+        await self._need("stems", "render_stems")
+        payload: dict = {"op": "render_stems", "dir": str(Path(out_dir).resolve()), "bitDepth": bit_depth}
+        if track_ids is not None:
+            payload["tracks"] = [await self._numeric_track_id(t) for t in track_ids]
+        if start_beats is not None:
+            payload["from"] = f"{start_beats}beats"
+        if length_beats is not None:
+            payload["to"] = f"{(start_beats or 0) + length_beats}beats"
+        return (await self._request(payload))["stems"]
+
+    async def engine_catalog(self) -> dict:
+        """Built-in instruments and effects as the running engine lists them."""
+        await self._need("catalog", "catalog")
+        reply = await self._request({"op": "catalog"})
+        return {k: reply[k] for k in ("instruments", "effects", "externalPlugins") if k in reply}
 
     async def save_project(self) -> None:
         await self._request({"op": "save"})

@@ -151,9 +151,10 @@ def check_song(source, out_dir: str | Path | None = None, catalog: dict | None =
                           f"first at beat {late[0].start}")
         if not t.notes:
             warnings.append(f"{t.name}: no notes (silent track)")
+        warnings.extend(t.warnings)
         summary.append({"name": t.name, "preset": t.preset, "instrument": inst.label,
-                        "fx": [f.label for f in t.fx], "volume": t.volume, "stem": t.stem,
-                        "notes": len(t.notes)})
+                        "fx": [f.label for f in t.fx], "volume": t.volume, "volume_source": t.volume_source,
+                        "level": t.level, "pan": t.pan, "stem": t.stem, "notes": len(t.notes)})
     stems = stems_of(tracks, spec)
     unknown = [s for s in stems if s not in {t.stem for t in tracks}]
     if unknown:
@@ -224,10 +225,11 @@ async def build_song(source, out_dir: str | Path | None = None, cli_path: str | 
                  "parts": played, "stems": {t.name: t.stem for t in tracks}}
     (out / "score.json").write_text(json.dumps(score_out))
     (out / "spec.resolved.json").write_text(json.dumps(
-        {"title": spec.title, "bpm": bpm, "length_beats": length,
+        {"title": spec.title, "bpm": bpm, "length_beats": length, "reference_lufs": spec.reference_lufs,
          "tracks": [t.model_dump(exclude={"notes"}) for t in tracks]}, indent=1))
 
     report: dict[str, Any] = {"title": spec.title, "bpm": bpm, "length_beats": length,
+                              "reference_lufs": spec.reference_lufs,
                               "clip_beats": clip_len, "out_dir": str(out), "preflight": check,
                               "problems": [], "param_results": {}, "readback_mismatch": [],
                               "tracks": {}, "renders": {}, "timings": {}}
@@ -270,6 +272,17 @@ async def build_song(source, out_dir: str | Path | None = None, cli_path: str | 
                 report["problems"].append(f"{t.name}: {type(e).__name__}: {getattr(e, 'message', e)}"[:500])
                 say("track-failed", {"name": t.name, "error": str(e)[:200]})
         await daw.set_track_volumes({ids[t.name]: t.volume for t in tracks if t.name in ids})
+        panned = [t for t in tracks if t.pan is not None and t.name in ids]
+        if panned:
+            from composerbench.errors import UnsupportedOperation
+            try:
+                if not hasattr(daw, "set_mixer"):
+                    raise UnsupportedOperation(reason="adapter has no mixer")
+                for t in panned:
+                    await daw.set_mixer(ids[t.name], pan=t.pan)
+            except UnsupportedOperation:
+                report["problems"].append("pan needs MAGDA serve protocol 3; tracks left centred: "
+                                          + ", ".join(t.name for t in panned))
         if hasattr(daw, "save_project"):
             await daw.save_project()
         report["timings"]["build"] = round(time.time() - t0, 1)
@@ -280,19 +293,30 @@ async def build_song(source, out_dir: str | Path | None = None, cli_path: str | 
         jobs = ([("mix", out / "mix.wav", None)] if spec.render.mix else []) + \
                [(f"stem:{s}", out / "stems" / f"{s}.wav", s) for s in stem_names]
         per_render = render_bytes((clip_len * 60.0 / bpm), 1, spec.render.bit_depth)
+        # protocol 3 renders just a stem's tracks (bit-identical, ~2.5x faster than
+        # rendering the whole song with the other faders at zero)
+        isolated = await daw.supports_isolated_render()
+        report["stem_method"] = "isolated tracks" if isolated else "other faders at zero"
         for label, path, stem in jobs:
             free = free_bytes(out) + _existing_bytes([path])
             if free - per_render < spec.render.min_free_mb * 2**20:
                 raise InsufficientDiskSpace(needed_mb=round(per_render / 2**20, 1),
                                             free_mb=round(free / 2**20, 1), render=label,
                                             hint="free disk space or render fewer stems")
-            volumes = {ids[t.name]: (t.volume if stem in (None, t.stem) else 0.0)
-                       for t in tracks if t.name in ids}
-            await daw.set_track_volumes(volumes)
+            track_ids = None
+            if isolated and stem is not None:
+                track_ids = [ids[t.name] for t in tracks if t.name in ids and t.stem == stem]
+                if not track_ids:
+                    report["problems"].append(f"stem {stem}: none of its tracks was built; not rendered")
+                    continue
+            elif not isolated:
+                volumes = {ids[t.name]: (t.volume if stem in (None, t.stem) else 0.0)
+                           for t in tracks if t.name in ids}
+                await daw.set_track_volumes(volumes)
             r0 = time.time()
             from composerbench.adapter.base import RenderRequest
             await daw.render(RenderRequest(output_path=path, start_beats=0.0, length_beats=clip_len,
-                                           bit_depth=spec.render.bit_depth))
+                                           bit_depth=spec.render.bit_depth, track_ids=track_ids))
             stats = _measure(path)
             stats["render_seconds"] = round(time.time() - r0, 1)
             stats["path"] = str(path)
@@ -300,7 +324,7 @@ async def build_song(source, out_dir: str | Path | None = None, cli_path: str | 
             say("render", {"what": label, "seconds": stats["render_seconds"],
                            "peak_dbfs": stats.get("peak_dbfs"), "lufs": stats.get("lufs")})
             write_report()
-        if stem_names:
+        if stem_names and not isolated:
             await daw.set_track_volumes({ids[t.name]: t.volume for t in tracks if t.name in ids})
             if hasattr(daw, "save_project"):
                 await daw.save_project()
@@ -377,7 +401,8 @@ async def _build_track(daw, t: ResolvedTrack, clip_len: float, report: dict) -> 
         await daw.add_notes(tid, clip.id, [Note(start=n.start, duration=n.duration, pitch=n.pitch,
                                                 velocity=n.velocity) for n in t.notes])
     report["param_results"][t.name] = results
-    report["tracks"][t.name] = {"id": tid, "stem": t.stem, "volume": t.volume, "preset": t.preset,
+    report["tracks"][t.name] = {"id": tid, "stem": t.stem, "volume": t.volume, "volume_source": t.volume_source,
+                                "level": t.level, "pan": t.pan, "preset": t.preset,
                                 "instrument": inst.label, "fx": [f.label for f in t.fx],
                                 "devices": [{"id": d, "name": n} for d, n, _ in devices],
                                 "notes_written": len(t.notes)}

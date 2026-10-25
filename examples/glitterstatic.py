@@ -22,7 +22,8 @@ usage:
   .venv/bin/python examples/glitterstatic.py            build + mix (needs magda_cli)
   .venv/bin/python examples/glitterstatic.py --check    score + spec preflight only
   .venv/bin/python examples/glitterstatic.py --mix-only re-mix existing stems (seconds)
-  options: --out DIR (default ~/Music/ComposerBench/glitterstatic), --no-plugins (no Surge XT)
+  options: --out DIR (default ~/Music/ComposerBench/glitterstatic), --no-plugins (no Surge XT),
+           --no-balance (skip the per-track balance pass after the build)
 """
 from __future__ import annotations
 
@@ -437,42 +438,41 @@ def compose() -> Score:
 
 # -------------------------------------------------------------- song + mix ----
 def song_spec(score_path: str, plugins: bool = True) -> dict:
-    # Fader values come from a balance pass on real MAGDA renders (per-track
-    # loudness where each part leads, set relative to the kick); Surge XT's
-    # saws were not part of that pass, so they keep the preset's level.
-    saws = {"name": "saws", "preset": "supersaw_surge"} if plugins else \
-        {"name": "saws", "preset": "supersaw_poly", "volume": 1.04}
+    # Levels are LU relative to the kick; presets bring their own (devices/levels.py) and
+    # the faders follow from each preset's calibrated loudness. Only the parts that sit
+    # differently in this song say so. The balance pass after the build trims the rest.
+    saws = "supersaw_surge" if plugins else "supersaw_poly"
     return {
         "title": "glitterstatic",
         "score": score_path,
         "tracks": [
-            {"name": "kick", "preset": "kick_punch", "volume": 0.228},
-            {"name": "snare", "preset": "snare_tight", "volume": 0.294},
-            {"name": "clap", "preset": "clap_wide", "volume": 0.36},
-            {"name": "hat", "preset": "hat_closed", "volume": 0.329},
-            {"name": "ohat", "preset": "hat_open", "volume": 0.305},
-            {"name": "bass", "preset": "bass_808", "volume": 0.147},
-            {"name": "sub", "preset": "sub_sine", "volume": 0.156},
-            {"name": "pad", "preset": "pad_sweep", "volume": 0.343},
-            saws,
-            {"name": "stab", "preset": "supersaw_poly", "volume": 1.05,
+            {"name": "kick", "preset": "kick_punch"},
+            {"name": "snare", "preset": "snare_tight"},
+            {"name": "clap", "preset": "clap_wide"},
+            {"name": "hat", "preset": "hat_closed"},
+            {"name": "ohat", "preset": "hat_open"},
+            {"name": "bass", "preset": "bass_808"},
+            {"name": "sub", "preset": "sub_sine", "level": -6.0},
+            {"name": "pad", "preset": "pad_sweep"},
+            {"name": "saws", "preset": saws, "level": 0.0},
+            {"name": "stab", "preset": "supersaw_poly", "level": -5.0,
              "params": {"Amp Decay": 80.0, "Amp Sustain": 0.6, "Amp Release": 30.0}},
-            {"name": "bells", "preset": "bell_fm", "params": {"Op2 Ratio": 4.0, "Amp Decay": 260.0}, "volume": 0.617},
-            {"name": "bells_soft", "preset": "bell", "params": {"decay": 1400.0}, "volume": 1.32},
-            {"name": "lead", "preset": "lead_glide", "volume": 0.414},
-            {"name": "lead_lo", "preset": "lead_glide", "params": {"Cutoff": 2600.0}, "volume": 0.219},
-            {"name": "topline", "preset": "lead_glide", "stem": "topline", "volume": 0.389,
+            {"name": "bells", "preset": "bell_fm", "params": {"Op2 Ratio": 4.0, "Amp Decay": 260.0}},
+            {"name": "bells_soft", "preset": "bell", "params": {"decay": 1400.0}},
+            {"name": "lead", "preset": "lead_glide", "level": 1.0},
+            {"name": "lead_lo", "preset": "lead_glide", "params": {"Cutoff": 2600.0}, "level": -5.0},
+            {"name": "topline", "preset": "lead_glide", "stem": "topline",
              "params": {"Cutoff": 3400.0, "Glide": 30.0, "Amp Attack": 8.0}},
-            {"name": "sparkle", "preset": "lead_fm_crushed", "stem": "topline", "volume": 0.281},
-            {"name": "harm", "preset": "lead_fm_crushed", "stem": "topline", "volume": 0.44,
+            {"name": "sparkle", "preset": "lead_fm_crushed", "stem": "topline"},
+            {"name": "harm", "preset": "lead_fm_crushed", "stem": "topline", "level": -6.0,
              "params": {"M21": 0.8}},
-            {"name": "chops", "preset": "chop_square", "stem": "chops", "volume": 0.516},
-            {"name": "riser", "preset": "riser", "volume": 0.643},
-            {"name": "swell", "preset": "noise_swell", "params": {"Amp Attack": 600.0}, "volume": 0.236},
-            {"name": "static", "preset": "static_crush", "volume": 0.055},
-            {"name": "crash", "preset": "crash_noise", "volume": 0.314},
-            {"name": "impact", "preset": "impact_boom", "volume": 0.309},
-            {"name": "beep", "preset": "beep", "volume": 0.216},
+            {"name": "chops", "preset": "chop_square", "stem": "chops", "level": -2.0},
+            {"name": "riser", "preset": "riser"},
+            {"name": "swell", "preset": "noise_swell", "params": {"Amp Attack": 600.0}},
+            {"name": "static", "preset": "static_crush"},
+            {"name": "crash", "preset": "crash_noise"},
+            {"name": "impact", "preset": "impact_boom"},
+            {"name": "beep", "preset": "beep"},
         ],
         "render": {"stems": True, "tail_beats": 4, "bit_depth": 24},
     }
@@ -536,6 +536,8 @@ def main(argv=None) -> int:
     ap.add_argument("--mix-only", action="store_true", help="re-run the mix on existing stems")
     ap.add_argument("--no-plugins", action="store_true", help="use the built-in supersaw instead of Surge XT")
     ap.add_argument("--engine", help="magda_cli path (default: discovered)")
+    ap.add_argument("--no-balance", action="store_true",
+                    help="skip the per-track balance pass (needs the protocol-3 engine; ~20 s per track)")
     ns = ap.parse_args(argv)
     out = Path(ns.out).expanduser()
     out.mkdir(parents=True, exist_ok=True)
@@ -563,6 +565,12 @@ def main(argv=None) -> int:
         report = asyncio.run(build_song(spec, out_dir=out, cli_path=ns.engine))
         print("build problems:", report["problems"][:12] or "none")
         print("read-back mismatches:", len(report["readback_mismatch"]))
+        if not ns.no_balance and report.get("stem_method") == "isolated tracks":
+            from composerbench.mixing.balance import balance_song
+            bal = asyncio.run(balance_song(out, cli_path=ns.engine, apply=True))
+            moves = ", ".join(f"{r['track']} {r['gain_db']:+.1f}" for r in bal["tracks"] if abs(r["gain_db"]) >= 1)
+            print(f"balance: {moves or 'every part within 1 dB'} (reference shift {bal['reference_shift_db']} dB)",
+                  flush=True)
     mixed = run_mix(out / "mix.json")
     m = mixed["master"]
     print(f"master: {m['integrated_lufs']} LUFS, true peak {m['true_peak_dbtp']} dBTP, LRA {m['loudness_range_lu']} LU")

@@ -3,11 +3,13 @@
     composerbench song example > song.json         a starter spec (8 bars, presets)
     composerbench song check song.json             preflight: devices, params, notes, disk
     composerbench song build song.json [--out DIR] [--stems all|none|drums,bass] [--force]
+    composerbench song balance SONG_DIR [--apply] [--levels '{"pad": -4}']   per-track loudness -> faders
     composerbench mix example > mix.json           a starter mix spec
     composerbench mix mix.json [--out DIR]         stems -> master.wav/mp3 + report
     composerbench devices [NAME] [--kind instrument|effect]
     composerbench devices refresh                  re-probe the engine, update the user catalog
     composerbench presets [NAME]
+    composerbench presets calibrate [--engine PATH] [--only a,b]   measure preset loudness at unity
     composerbench score check score.json [--ranges '{"bass":[24,52]}'] [--mono bass,lead]
     composerbench report mix.wav [--score score.json] [--stems DIR]
 """
@@ -48,6 +50,16 @@ async def cmd_song(ns: argparse.Namespace) -> int:
     if not ns.spec:
         print("a spec file is required", file=sys.stderr)
         return 2
+    if ns.song_action == "balance":
+        from composerbench.mixing.balance import balance_song
+        levels = json.loads(ns.levels) if ns.levels else None
+        report = await balance_song(ns.spec, cli_path=ns.engine, apply=ns.apply, levels=levels,
+                                    progress=lambda stage, info=None: print(f"[balance] {stage} {info or ''}",
+                                                                            file=sys.stderr, flush=True))
+        _print({**{k: report[k] for k in ("song", "reference_lufs", "reference_shift_db", "applied")},
+                "tracks": [{k: r.get(k) for k in ("track", "volume", "new_volume", "gain_db", "measured_lufs",
+                                                  "target_lufs", "note")} for r in report["tracks"]]})
+        return 0
     if ns.song_action == "check":
         report = check_song(ns.spec, ns.out)
         _print(report)
@@ -103,6 +115,20 @@ async def cmd_devices(ns: argparse.Namespace) -> int:
 
 async def cmd_presets(ns: argparse.Namespace) -> int:
     from composerbench.devices.presets import get_preset, list_presets
+    if ns.name == "calibrate":
+        from composerbench.devices import levels
+        from composerbench.engine import require_cli
+        work = Path.home() / "Music" / "ComposerBench" / "_preset_calibration"
+        only = [n for n in (ns.only or "").split(",") if n] or None
+        result = await levels.calibrate(require_cli(ns.engine), work, presets=only)
+        if only:   # merge a partial run into the existing file
+            merged = levels.load_calibration()
+            merged.setdefault("presets", {}).update(result["presets"])
+            result = {**merged, "generated": result["generated"], "engine": result["engine"]}
+        levels.CALIBRATION_FILE.write_text(json.dumps(result, indent=1) + "\n")
+        _print({"written": str(levels.CALIBRATION_FILE), "presets": result["presets"],
+                "problems": result.get("problems", [])})
+        return 0
     _print(get_preset(ns.name) if ns.name else list_presets())
     return 0
 
@@ -142,8 +168,10 @@ async def cmd_report(ns: argparse.Namespace) -> int:
 
 def register(sub) -> None:
     song = sub.add_parser("song", help="declarative song build: spec -> MAGDA project + renders")
-    song.add_argument("song_action", choices=["example", "check", "build"])
-    song.add_argument("spec", nargs="?")
+    song.add_argument("song_action", choices=["example", "check", "build", "balance"])
+    song.add_argument("spec", nargs="?", help="spec file (check/build) or built song folder (balance)")
+    song.add_argument("--apply", action="store_true", help="balance: write the faders and rebuild the stems")
+    song.add_argument("--levels", help='balance: target levels per track, JSON (LU relative to the kick)')
     song.add_argument("--out", help="output folder (default ~/Music/ComposerBench/<title>)")
     song.add_argument("--engine", help="magda_cli path (default: discovered)")
     song.add_argument("--stems", help="all | none | comma-separated stem names")
@@ -164,7 +192,9 @@ def register(sub) -> None:
     dev.set_defaults(func=cmd_devices)
 
     pre = sub.add_parser("presets", help="verified track presets (instrument + FX + level + stem)")
-    pre.add_argument("name", nargs="?")
+    pre.add_argument("name", nargs="?", help="preset to show, or 'calibrate'")
+    pre.add_argument("--engine", help="magda_cli path for 'calibrate'")
+    pre.add_argument("--only", help="calibrate: comma-separated presets (merged into the existing file)")
     pre.set_defaults(func=cmd_presets)
 
     sc = sub.add_parser("score", help="symbolic checks on a score.json")

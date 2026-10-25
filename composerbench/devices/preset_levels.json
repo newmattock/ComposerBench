@@ -1,0 +1,129 @@
+{
+ "engine": "magda_cli ebd93db0 + ComposerBench serve patch (Release, Linux)",
+ "generated": "2026-10-25",
+ "probe": {
+  "bpm": 120.0,
+  "beats": 8.0
+ },
+ "presets": {
+  "kick_punch": {
+   "lufs_at_unity": -10.14,
+   "role": "kick",
+   "level": 0.0
+  },
+  "kick_boom": {
+   "lufs_at_unity": -11.09,
+   "role": "kick",
+   "level": 0.0
+  },
+  "snare_tight": {
+   "lufs_at_unity": -15.8,
+   "role": "snare",
+   "level": -3.5
+  },
+  "clap_wide": {
+   "lufs_at_unity": -16.44,
+   "role": "clap",
+   "level": -4.5
+  },
+  "hat_closed": {
+   "lufs_at_unity": -25.16,
+   "role": "hat",
+   "level": -10.0
+  },
+  "hat_open": {
+   "lufs_at_unity": -19.42,
+   "role": "hat",
+   "level": -12.0
+  },
+  "crash_noise": {
+   "lufs_at_unity": -19.92,
+   "role": "crash",
+   "level": -8.0
+  },
+  "impact_boom": {
+   "lufs_at_unity": -14.32,
+   "role": "impact",
+   "level": -5.5
+  },
+  "zap_crushed": {
+   "lufs_at_unity": -25.84,
+   "role": "zap",
+   "level": -8.0
+  },
+  "bass_808": {
+   "lufs_at_unity": -10.77,
+   "role": "bass",
+   "level": -1.5
+  },
+  "sub_sine": {
+   "lufs_at_unity": -14.02,
+   "role": "bass",
+   "level": -4.0
+  },
+  "supersaw_poly": {
+   "lufs_at_unity": -23.93,
+   "role": "chords",
+   "level": -1.5
+  },
+  "pad_sweep": {
+   "lufs_at_unity": -21.51,
+   "role": "pad",
+   "level": -6.0
+  },
+  "pluck": {
+   "lufs_at_unity": -30.38,
+   "role": "arp",
+   "level": -6.0
+  },
+  "bell": {
+   "lufs_at_unity": -30.72,
+   "role": "bell",
+   "level": -7.0
+  },
+  "bell_fm": {
+   "lufs_at_unity": -24.97,
+   "role": "bell",
+   "level": -9.0
+  },
+  "lead_glide": {
+   "lufs_at_unity": -15.66,
+   "role": "lead",
+   "level": 0.0
+  },
+  "lead_fm_crushed": {
+   "lufs_at_unity": -20.05,
+   "role": "lead",
+   "level": -8.0
+  },
+  "chop_square": {
+   "lufs_at_unity": -19.59,
+   "role": "chop",
+   "level": -3.0
+  },
+  "riser": {
+   "lufs_at_unity": -27.62,
+   "role": "riser",
+   "level": -8.5
+  },
+  "noise_swell": {
+   "lufs_at_unity": -16.92,
+   "role": "swell",
+   "level": -8.5
+  },
+  "static_crush": {
+   "lufs_at_unity": -7.95,
+   "role": "texture",
+   "level": -12.0
+  },
+  "beep": {
+   "lufs_at_unity": -18.47,
+   "role": "texture",
+   "level": -8.0
+  }
+ },
+ "problems": [
+  "supersaw_surge: RuntimeError: plugin 'Surge XT' not found; scanned: []",
+  "stem supersaw_surge: none of its tracks was built; not rendered"
+ ]
+}

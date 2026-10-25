@@ -139,6 +139,10 @@ class DawAdapter(ABC):
         for track_id, volume in volumes.items():
             await self.set_track_volume(track_id, volume)
 
+    async def supports_isolated_render(self) -> bool:
+        """True when render(track_ids=[...]) renders just those tracks (no fader tricks)."""
+        return False
+
     @abstractmethod
     async def load_device(self, track_id: str, device_name: str) -> Device: ...
 

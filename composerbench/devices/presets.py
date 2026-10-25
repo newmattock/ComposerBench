@@ -5,8 +5,10 @@ read back from the engine with zero mismatches, and from the device catalog.
 Discrete settings are written as ``{"label": ..., "value": ...}`` so they read
 well and still work on engines that cannot resolve labels.
 
-Volumes are linear track faders already trimmed for headroom (a full mix of
-these presets peaked around -1 dBFS). Use a preset in a song spec with
+Each preset also has a ``level`` (LU relative to the kick) and its measured
+``lufs_at_unity`` (devices/levels.py, devices/preset_levels.json): a song spec
+that gives no ``volume`` gets the fader that puts the part at its level. The
+stored ``volume`` is the fallback for presets that are not calibrated. Use a preset in a song spec with
 ``{"name": "kick", "preset": "kick_punch"}`` and override anything:
 ``"params"`` merges into the instrument settings, ``"fx"`` replaces the chain,
 ``"fx_params"`` merges into chain entries by index, ``"volume"``/``"stem"``
@@ -307,15 +309,21 @@ def get_preset(name: str) -> dict:
         near = difflib.get_close_matches(name, list(PRESETS), n=3)
         raise KeyError(f"unknown preset {name!r}" + (f"; did you mean {near}?" if near else "")
                        + f" (available: {sorted(PRESETS)})")
-    return copy.deepcopy(PRESETS[name])
+    from composerbench.devices import levels
+    preset = copy.deepcopy(PRESETS[name])
+    preset["level"] = levels.default_level(name, preset.get("role"))
+    preset["lufs_at_unity"] = levels.lufs_at_unity(name)
+    return preset
 
 
 def list_presets() -> list[dict]:
+    from composerbench.devices import levels
     out = []
     for name, p in PRESETS.items():
         inst = p["instrument"]
         out.append({"name": name, "role": p.get("role"), "stem": p["stem"],
                     "instrument": inst.get("device") or inst.get("plugin"),
                     "fx": [f["device"] for f in p.get("fx", [])],
+                    "level": levels.default_level(name, p.get("role")),
                     "description": p["description"]})
     return out

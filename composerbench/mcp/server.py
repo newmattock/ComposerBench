@@ -35,7 +35,14 @@ from composerbench.agent.actions import Action
 from composerbench.client import ComposerBench
 from composerbench.composition.state import CompositionPlan, Intent
 from composerbench.engine import CLI_CANDIDATES, discover_cli
-from composerbench.errors import ComposerBenchError, MagdaCliNotFound, NoProject, ProjectExists, ProjectNotFound
+from composerbench.errors import (
+    ComposerBenchError,
+    MagdaCliNotFound,
+    NoProject,
+    ProjectExists,
+    ProjectNotFound,
+    UnsupportedOperation,
+)
 from composerbench.evaluation.comparison import Objective
 from composerbench.model import Note
 from composerbench.production import GainPoint, Slice
@@ -220,7 +227,32 @@ _NEW_TOOLS = [
     ('music_parameters_inspect', 'Inspect parameter IDs, values, units and ranges.', {'track': _STRING, 'device': _STRING}, ['track', 'device']),
     ('music_parameter_set', 'Set a validated parameter in a recoverable transaction. value is a number in the parameter\'s range or a choice label ("Hall", "1/8.", "Legato").', {'track': _STRING, 'device': _STRING, 'parameter': _STRING, 'value': {'type': ['number', 'string']}}, ['track', 'device', 'parameter', 'value']),
     ('music_volume_set', 'Set track gain (linear 0..2).', {'track': _STRING, 'volume': {'type': 'number', 'minimum': 0, 'maximum': 2}}, ['track', 'volume']),
-    ('music_fx_add', 'Attach an effect and return its device ID.', {'track': _STRING, 'name': _STRING}, ['track', 'name']),
+    ('music_fx_add', 'Attach an effect and return its device ID. track may be "master" (master bus insert). position "post" puts it after the fader; sidechain_from keys a pre-fader device (the "sidechain" ducker, a compressor) from another track. Master, position and sidechain need the protocol-3 engine.',
+     {'track': _STRING, 'name': _STRING, 'position': {'type': 'string', 'enum': ['pre', 'post']},
+      'sidechain_from': _STRING, 'sidechain_type': {'type': 'string', 'enum': ['midi', 'audio']}}, ['track', 'name']),
+    ('music_mixer_set', 'Channel settings in the engine: volume in dB, pan -1..1, mute, solo, and post-fader sends to aux/group tracks ([{to, level_db} | {to, remove: true}]). track may be "master". Returns the channel. Needs the protocol-3 engine.',
+     {'track': _STRING, 'volume_db': {'type': 'number', 'minimum': -120, 'maximum': 6},
+      'pan': {'type': 'number', 'minimum': -1, 'maximum': 1}, 'mute': {'type': 'boolean'}, 'solo': {'type': 'boolean'},
+      'sends': {'type': 'array', 'maxItems': 16, 'items': {'type': 'object', 'additionalProperties': False,
+                'properties': {'to': _STRING, 'level_db': {'type': 'number', 'minimum': -120, 'maximum': 6},
+                               'remove': {'type': 'boolean'}}, 'required': ['to']}}}, ['track']),
+    ('music_automation_write', 'Write an automation lane inside MAGDA (rendered with the song, unlike music_mixdown automation). target: {kind: volume|pan, track} | {kind: send, track, to} | {kind: param, device, param}. points: [{beat, value, curve?}] - volume in dB, pan -1..1, parameters in native range or as labels. Devices after the fader cannot be automated. Needs the protocol-3 engine.',
+     {'target': {'type': 'object', 'properties': {'kind': {'type': 'string', 'enum': ['volume', 'pan', 'send', 'param']},
+                 'track': _STRING, 'to': _STRING, 'device': {'type': 'integer'}, 'param': {'type': ['string', 'integer']}},
+                 'required': ['kind']},
+      'points': {'type': 'array', 'maxItems': 4096, 'items': {'type': 'object', 'properties': {
+          'beat': {'type': 'number', 'minimum': 0}, 'value': {'type': ['number', 'string']}, 'curve': {'type': 'number'}},
+          'required': ['beat', 'value']}},
+      'mode': {'type': 'string', 'enum': ['replace', 'add', 'range', 'clear'], 'default': 'replace'}}, ['target', 'points']),
+    ('music_clip_edit', 'Arrangement edits at absolute beats: create (track, start, length, name?), move (clip, start, track?), resize (clip, length), duplicate (clip, start), rename (clip, name), delete (clip), loop (clip, loop_length, length). overlap: error (default) | replace | shift. Needs the protocol-3 engine.',
+     {'action': {'type': 'string', 'enum': ['create', 'move', 'resize', 'duplicate', 'rename', 'delete', 'loop']},
+      'clip': _STRING, 'track': _STRING, 'start': {'type': 'number', 'minimum': 0},
+      'length': {'type': 'number', 'exclusiveMinimum': 0}, 'loop_length': {'type': 'number', 'exclusiveMinimum': 0},
+      'name': _STRING, 'overlap': {'type': 'string', 'enum': ['error', 'replace', 'shift']}}, ['action']),
+    ('music_stems_render', 'Render one WAV per track (default: every track feeding the master) into output_dir, for per-track loudness checks or stem exports. Needs the protocol-3 engine.',
+     {'output_dir': _STRING, 'tracks': {'type': 'array', 'items': _STRING},
+      'start_beats': {'type': 'number', 'minimum': 0}, 'length_beats': {'type': 'number', 'exclusiveMinimum': 0}},
+     ['output_dir']),
     ('music_roles_list', 'List available semantic sound recipes.', {}, []),
     ('music_role_apply', 'Apply a sound recipe transactionally.', {'track': _STRING, 'role': _STRING}, ['track', 'role']),
     ('music_batch_edit', 'Preflight and apply an all-or-nothing edit batch. No artistic judgment.', _BATCH, ['actions']),
@@ -250,7 +282,8 @@ _NEW_TOOLS = [
 _SPEC = {'type': 'object', 'description': 'the spec itself (paths inside it should be absolute)'}
 _NEW_TOOLS += [
     ('music_device_catalog', 'Offline MAGDA device knowledge: every built-in instrument/effect (and Surge XT) with parameter names, ranges, units, defaults and labels. Give device for one device; omit it to list all. No engine needed.',
-     {'device': _STRING, 'kind': {'type': 'string', 'enum': ['instrument', 'effect']}}, []),
+     {'device': _STRING, 'kind': {'type': 'string', 'enum': ['instrument', 'effect']},
+      'live': {'type': 'boolean', 'description': 'also list what the running engine offers (protocol 3)'}}, []),
     ('music_presets', 'Verified track presets (instrument + settings + FX chain + fader + stem) for kicks, snares, hats, 808s, supersaws, pads, plucks, bells, leads, risers, noise. Give name for the full preset.',
      {'name': _STRING}, []),
     ('music_song_check', 'Preflight a song spec without the engine: presets, devices, every parameter (names, ranges, labels), notes vs clip length, stems, free disk space. Run before music_song_build.',
@@ -259,6 +292,11 @@ _NEW_TOOLS += [
      {'spec': _SPEC, 'spec_path': _STRING, 'out_dir': _STRING,
       'stems': {'type': ['boolean', 'array'], 'items': _STRING}, 'force': {'type': 'boolean'},
       'wait': {'type': 'boolean', 'default': False}}, []),
+    ('music_balance', 'Balance a built song: render every track alone, measure its loudness per section and move each fader so the part sits at its level (LU relative to the kick; from the spec, else the preset). apply=true writes the faders and rebuilds stems/ and mix.wav from the track renders, so music_mixdown can run again at once. Background job unless wait=true. Needs the protocol-3 engine.',
+     {'song_dir': _STRING, 'apply': {'type': 'boolean', 'default': False},
+      'levels': {'type': 'object', 'additionalProperties': {'type': 'number', 'minimum': -40, 'maximum': 12}},
+      'reference_lufs': {'type': 'number', 'minimum': -40, 'maximum': -6},
+      'wait': {'type': 'boolean', 'default': False}}, ['song_dir']),
     ('music_job_status', 'Status, recent log lines and (when done) the result of a background job; omit job_id to list jobs.',
      {'job_id': _STRING, 'full': {'type': 'boolean', 'default': True}}, []),
     ('music_mixdown', 'Mix and master rendered stems from a mix spec: volume/filter automation, sidechain ducking keyed from the score, cuts, tape stop / stutter / reverse swell / telephone edits, bus EQ + glue, loudness target with a true-peak limiter. Writes master WAV/MP3, spectrogram and a report with per-section loudness. Times can be beats or section references like "pre1.end-1".',
@@ -365,6 +403,11 @@ class MCPServer:
         return {"project": self.project_path, **(await new_client.project()).model_dump()}
 
     # ---- JSON-RPC plumbing ------------------------------------------------------
+
+    async def close(self) -> None:
+        """Stop the open project's engine (if any); the server can be reused afterwards."""
+        await self.client.close()
+        self.client = _NoProject()
     def dispatch(self, request: dict[str, Any]) -> dict[str, Any] | None:
         method = request.get("method")
         req_id = request.get("id")
@@ -564,8 +607,50 @@ class MCPServer:
     async def _tool_music_volume_set(self, args):
         return self._tool_text(await self.client.set_volume(**args))
 
+    def _engine_p3(self):
+        daw = self.client.daw
+        if not hasattr(daw, 'set_mixer'):
+            raise UnsupportedOperation(reason='needs the persistent MAGDA engine (serve protocol 3)',
+                                       adapter=type(daw).__name__)
+        return daw
+
     async def _tool_music_fx_add(self, args):
-        return self._tool_text(await self.client.add_fx(**args))
+        if args.get('position') or args.get('sidechain_from') or str(args['track']).lower() == 'master':
+            daw = self._engine_p3()
+            position = args.get('position', 'pre')
+            device = await daw.add_effect(args['track'], args['name'], position=position)
+            out = {'device_id': device, 'position': position}
+            if args.get('sidechain_from'):
+                keyed = await daw.set_sidechain(device, args['sidechain_from'], args.get('sidechain_type', 'midi'))
+                out['sidechain'] = keyed.get('sidechain')
+            return self._tool_text(out)
+        return self._tool_text(await self.client.add_fx(track=args['track'], name=args['name']))
+
+    async def _tool_music_mixer_set(self, args):
+        daw = self._engine_p3()
+        channel = await daw.set_mixer(args['track'], volume_db=args.get('volume_db'), pan=args.get('pan'),
+                                      mute=args.get('mute'), solo=args.get('solo'))
+        for send in args.get('sends', []):
+            channel = await daw.set_send(args['track'], send['to'], level_db=send.get('level_db'),
+                                         remove=send.get('remove', False))
+        return self._tool_text({'channel': channel})
+
+    async def _tool_music_automation_write(self, args):
+        lane = await self._engine_p3().write_automation(args['target'], args['points'], args.get('mode', 'replace'))
+        return self._tool_text(lane)
+
+    async def _tool_music_clip_edit(self, args):
+        fields = {k: args[k] for k in ('start', 'length', 'name', 'overlap') if k in args}
+        if 'loop_length' in args:
+            fields['loopLength'] = args['loop_length']
+        clip = await self._engine_p3().clip_edit(args['action'], clip=args.get('clip'), track=args.get('track'),
+                                                 **fields)
+        return self._tool_text({'clip': clip})
+
+    async def _tool_music_stems_render(self, args):
+        stems = await self._engine_p3().render_stems(args['output_dir'], args.get('tracks'),
+                                                     args.get('start_beats'), args.get('length_beats'))
+        return self._tool_text({'stems': stems})
 
     async def _tool_music_roles_list(self, args):
         return self._tool_text({'roles': self.client.roles()})
@@ -692,7 +777,10 @@ class MCPServer:
                 raise KeyError(f"{args['device']!r} is not in the catalog; "
                                f"known: {[d['name'] for d in catalog.list_devices()]}")
             return self._tool_text({**entry, 'text': catalog.describe(args['device'])})
-        return self._tool_text({'devices': catalog.list_devices(args.get('kind'))})
+        out = {'devices': catalog.list_devices(args.get('kind'))}
+        if args.get('live'):
+            out['engine'] = await self._engine_p3().engine_catalog()
+        return self._tool_text(out)
 
     async def _tool_music_presets(self, args):
         from composerbench.devices.presets import get_preset, list_presets
@@ -723,6 +811,27 @@ class MCPServer:
             return summary(report)
         title = source.get('title', '?') if isinstance(source, dict) else str(source)
         job = self.jobs.start('song', f'build {title}', work)
+        if args.get('wait'):
+            await job.task
+            return self._tool_text(job.to_dict(full=True), is_error=job.status != 'done')
+        return self._tool_text({**job.to_dict(), 'next': 'poll music_job_status with this job_id'})
+
+    async def _tool_music_balance(self, args):
+        from composerbench.mixing.balance import balance_song
+        cli = discover_cli(self.cfg.cli_path)
+        if cli is None:
+            raise MagdaCliNotFound(searched=[self.cfg.cli_path, *CLI_CANDIDATES],
+                                   hint="the balance pass renders tracks; set COMPOSERBENCH_CLI")
+
+        async def work(job):
+            report = await balance_song(args['song_dir'], cli_path=cli, apply=bool(args.get('apply')),
+                                        reference_lufs=args.get('reference_lufs'), levels=args.get('levels'),
+                                        progress=job.progress)
+            return {**{k: report.get(k) for k in ('song', 'reference_lufs', 'reference_shift_db', 'applied',
+                                                  'peak_dbfs', 'spec_patch')},
+                    'tracks': [{k: r.get(k) for k in ('track', 'volume', 'new_volume', 'gain_db', 'measured_lufs',
+                                                      'target_lufs', 'note')} for r in report['tracks']]}
+        job = self.jobs.start('balance', f"balance {args['song_dir']}", work)
         if args.get('wait'):
             await job.task
             return self._tool_text(job.to_dict(full=True), is_error=job.status != 'done')
