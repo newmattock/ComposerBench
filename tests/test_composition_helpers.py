@@ -123,3 +123,15 @@ def test_clash_and_range_reports():
     assert len(rr["issues"]) == 1 and rr["issues"][0]["note"] == "C#5"
     assert density_report(sc)["a"]["lead"] == 2.5
     assert check_score(sc)["harmony"]["summary"].startswith("2 clash")
+
+
+def test_sustain_report_flags_a_note_ringing_through_a_section():
+    from composerbench.analysis.harmony import sustain_report
+    sc = Score.from_bars(120, [("chorus", 2), ("bridge", 8), ("last", 2)])
+    sc.add("bass", [note(7.25, 32.8, 49), note(40.0, 1, 45)])        # the glitterstatic bug
+    sc.add("pad", [note(40.0, 7.5, 60)])                              # ends with the song: fine
+    report = sustain_report(sc)
+    assert [i["part"] for i in report["issues"]] == ["bass"]
+    assert "into 'bridge'" in report["issues"][0]["problem"]
+    sc.parts["bass"][0]["duration"] = 0.75
+    assert sustain_report(sc)["issues"] == []

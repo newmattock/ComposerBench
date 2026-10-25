@@ -103,4 +103,63 @@ def section_report(x: np.ndarray, sr: float, sections: list[dict], stems: dict |
     for name, st in out["mix"].items():
         if st["peak_dbfs"] is not None and st["peak_dbfs"] > -0.1:
             out["flags"].append(f"{name}: peaks at {st['peak_dbfs']} dBFS")
+    out["flags"].extend(balance_flags(out, sections))
     return out
+
+
+def _median(values):
+    values = sorted(v for v in values if v is not None)
+    if not values:
+        return None
+    mid = len(values) // 2
+    return values[mid] if len(values) % 2 else (values[mid - 1] + values[mid]) / 2
+
+
+def balance_flags(report: dict, sections: list[dict], tilt_db: float = 10.0, mono_width: float = 0.06,
+                  buried_db: float = 15.0) -> list[str]:
+    """Problems a listener would hear at once, from a section report.
+
+    - a section louder than a section it should build to (declared ``energy``)
+    - a bass-heavy tilt (mids far under the low end) or no top end
+    - a nearly mono mix
+    - a stem buried far under the loudest stem wherever it plays (fx stems excepted)
+    """
+    flags = []
+    mix = report.get("mix", {})
+    lufs = {n: st["lufs"] for n, st in mix.items() if st.get("lufs") is not None}
+    energy = {s["name"]: s["energy"] for s in sections if s.get("energy") is not None and s["name"] in lufs}
+    for name, e in energy.items():
+        higher = [m for m, f in energy.items() if f >= e + 0.3]
+        if higher:
+            ref = min(higher, key=lambda m: lufs[m])
+            if lufs[name] > lufs[ref] + 0.5:
+                flags.append(f"{name} (energy {e}) is louder than {ref} (energy {energy[ref]}): "
+                             f"{lufs[name]} vs {lufs[ref]} LUFS - the arrangement does not build")
+    bands = [st.get("bands_db") or {} for st in mix.values()]
+    low = _median(max((b.get("sub") or -99), (b.get("low") or -99)) for b in bands if b)
+    mid = _median(b.get("mid") for b in bands if b)
+    high = _median(b.get("high") for b in bands if b)
+    if low is not None and mid is not None and low - mid > tilt_db:
+        flags.append(f"bass-heavy: the 1-4 kHz band sits {low - mid:.1f} dB under the low end "
+                     f"(typical pop/EDM: 3-8 dB); raise the melodic parts or cut sub/808")
+    if high is not None and high < -25:
+        flags.append(f"dull: only {high} dB of the energy is in 4-12 kHz; the mix has no top end")
+    width = _median(st.get("width") for st in mix.values())
+    if width is not None and width < mono_width:
+        flags.append(f"nearly mono: median side/mid ratio {width:.3f}; widen pads/synths or pan parts")
+    stems = report.get("stems", {})
+    for stem, row in stems.items():
+        if "fx" in stem.lower():
+            continue
+        gaps = []
+        for sec, st in row.items():
+            if st.get("lufs") is None or st["lufs"] < -60:
+                continue
+            loudest = max((r[sec]["lufs"] for r in stems.values() if sec in r and r[sec].get("lufs") is not None),
+                          default=None)
+            if loudest is not None:
+                gaps.append(loudest - st["lufs"])
+        gap = _median(gaps)
+        if gap is not None and gap > buried_db:
+            flags.append(f"{stem} is buried: {gap:.1f} dB under the loudest stem where it plays")
+    return flags

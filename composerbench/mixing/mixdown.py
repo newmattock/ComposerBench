@@ -293,6 +293,7 @@ def run_mix(source, out_dir: str | Path | None = None, write_files: bool = True)
         "sections": section_report(y, sr, sec_s, {k: v for k, v in audio.items()}) if sec_s else None,
         "files": {}, "seconds_to_mix": None,
     }
+    report["warnings"] = list((report["sections"] or {}).get("flags", []))
     if write_files:
         out.mkdir(parents=True, exist_ok=True)
         wav = out / f"{spec.export.basename}.wav"

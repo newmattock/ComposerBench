@@ -548,6 +548,7 @@ def main(argv=None) -> int:
         checks = check_score(score, ranges={"bass": (24, 55), "sub": (24, 50), "lead": (64, 100)},
                              mono=["bass", "lead", "topline"])
         print("score:", checks["harmony"]["summary"], "|", checks["ranges"]["summary"],
+              "|", checks["sustain"]["summary"],
               "| problems:", checks["validation"][:3] or "none", flush=True)
         score_path = out / "composition.json"
         score.save(score_path)
@@ -566,6 +567,7 @@ def main(argv=None) -> int:
     m = mixed["master"]
     print(f"master: {m['integrated_lufs']} LUFS, true peak {m['true_peak_dbtp']} dBTP, LRA {m['loudness_range_lu']} LU")
     print("sections (LUFS):", ", ".join(f"{n} {v}" for n, v in mixed["sections"]["contour"]))
+    print("mix warnings:", "; ".join(mixed["warnings"]) or "none")
     for k, v in mixed["files"].items():
         print(f"{k}: {v}")
     return 0

@@ -99,8 +99,42 @@ def density_report(score: Score) -> dict:
     return out
 
 
+def sustain_report(score: Score, max_bars: float = 8.0, spill_bars: float = 1.0) -> dict:
+    """Notes that ring on where they almost certainly should not.
+
+    Flags a note that runs more than ``spill_bars`` into a later section in
+    which its part starts nothing before the note ends (a slide or legato at
+    the end of a section stretched to the next entry), and any note longer
+    than ``max_bars`` bars.
+    """
+    bpb = score.beats_per_bar
+    issues = []
+    for part, ns in score.parts.items():
+        starts = sorted(n["start"] for n in ns)
+        for n in ns:
+            start, end = n["start"], n["start"] + n["duration"]
+            home = score.section_at(start)
+            problem = None
+            if n["duration"] > max_bars * bpb:
+                problem = f"lasts {n['duration'] / bpb:.1f} bars"
+            for sec in score.sections:
+                if home is not None and sec.start < home.end:
+                    continue
+                spill = min(end, sec.end) - sec.start
+                if spill <= spill_bars * bpb:
+                    break
+                if not any(sec.start <= t < min(end, sec.end) for t in starts):
+                    problem = (f"sustains {spill / bpb:.1f} bars into '{sec.name}', where {part} plays "
+                               "nothing else (a slide or legato reaching a far-off note?)")
+                break
+            if problem:
+                issues.append({"part": part, "beat": round(start, 4), "note": note_name(n["pitch"]),
+                               "duration": round(n["duration"], 3), "problem": problem})
+    return {"issues": issues, "summary": f"{len(issues)} runaway note(s)"}
+
+
 def check_score(score: Score, ranges=None, mono=None, clip_length=None) -> dict:
     """Everything above plus Score.validate(), in one report."""
     return {"validation": score.validate(clip_length), "harmony": clash_report(score),
-            "ranges": range_report(score, ranges, mono), "density": density_report(score),
-            "parts": score.stats()}
+            "ranges": range_report(score, ranges, mono), "sustain": sustain_report(score),
+            "density": density_report(score), "parts": score.stats()}

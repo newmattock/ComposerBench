@@ -217,7 +217,9 @@ class Timeline:
         if not self.bpm:
             return []
         k = 60.0 / self.bpm
-        return [{"name": n, "start_s": s["start"] * k, "end_s": s["end"] * k} for n, s in self.sections.items()]
+        return [{"name": n, "start_s": s["start"] * k, "end_s": s["end"] * k,
+                 **({"energy": s["energy"]} if s.get("energy") is not None else {})}
+                for n, s in self.sections.items()]
 
 
 def load_mix_spec(source: str | Path | dict) -> tuple[MixSpec, Path]:

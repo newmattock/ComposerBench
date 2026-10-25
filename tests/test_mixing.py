@@ -157,3 +157,22 @@ def test_mix_spec_errors(tmp_path):
     with pytest.raises(MixError):
         run_mix({"score": str(tmp_path / "score.json"), "stems_dir": str(tmp_path / "stems"),
                  "sidechain": [{"trigger": {"part": "snare"}, "targets": ["bass"]}]}, tmp_path)
+
+
+def test_balance_flags_catch_a_bad_mix_and_pass_a_good_one():
+    from composerbench.analysis.sections import balance_flags
+    secs = [{"name": "verse", "energy": 0.45}, {"name": "chorus", "energy": 0.85}, {"name": "bridge", "energy": 0.4}]
+
+    def mix(lufs, low, mid, width):
+        return {n: {"lufs": v, "width": width, "bands_db": {"sub": low, "low": low, "mid": mid, "high": -15}}
+                for n, v in lufs.items()}
+    bad = {"mix": mix({"verse": -10.7, "chorus": -9.9, "bridge": -8.6}, -3.5, -17.0, 0.03),
+           "stems": {"drums": {"chorus": {"lufs": -17.4}}, "synths": {"chorus": {"lufs": -37.7}},
+                     "fx": {"chorus": {"lufs": -40.0}}}}
+    flags = " | ".join(balance_flags(bad, secs))
+    for expected in ("bridge (energy 0.4) is louder than chorus", "bass-heavy", "nearly mono", "synths is buried"):
+        assert expected in flags
+    assert "fx is buried" not in flags
+    good = {"mix": mix({"verse": -11.0, "chorus": -9.3, "bridge": -11.6}, -5.5, -9.2, 0.15),
+            "stems": {"drums": {"chorus": {"lufs": -22.2}}, "synths": {"chorus": {"lufs": -24.6}}}}
+    assert balance_flags(good, secs) == []
