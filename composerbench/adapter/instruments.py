@@ -99,15 +99,3 @@ def write_manifest(project_dir: Path | str, data: dict) -> Path:
     return path
 
 
-def audible_instruments_for(project_dir: Path | str) -> tuple[frozenset[str], str]:
-    """(set of known-audible instrument ids, source description)."""
-    manifest = load_manifest(project_dir)
-    if manifest:
-        audible = {
-            str(entry["id"]).strip().lower()
-            for entry in manifest.get("instruments", [])
-            if entry.get("audible")
-        }
-        if audible:
-            return frozenset(audible), f"manifest ({manifest.get('binary', '?')})"
-    return frozenset(KNOWN_AUDIBLE_INSTRUMENTS), "built-in allowlist"

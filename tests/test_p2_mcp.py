@@ -4,8 +4,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-import pytest
-
 from composerbench.client import ComposerBench
 from composerbench.mcp.server import INSTRUCTIONS, MCPServer, ServerConfig, normalize_project_path
 

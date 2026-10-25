@@ -1,9 +1,6 @@
 """Audio critic (Sprint B2): structured verdicts from section features."""
 from __future__ import annotations
 
-import math
-
-
 # Intent emotion tags -> brightness expectations (centroid Hz bands)
 BRIGHTNESS_TARGETS = {
     "serene":   (400, 1800),
@@ -94,14 +91,13 @@ def criticize(features: list[dict], sections: list[str],
             ne = energy_targets.get(nxt, 0)
             fp = next((f for f, s in zip(features, sections) if s == prev), None)
             fn = next((f for f, s in zip(features, sections) if s == nxt), None)
-            if fp and fn and ne > pe + 0.05:
-                if fn["rms_dbfs"] <= fp["rms_dbfs"] + DYNAMICS_TOLERANCE:
-                    findings.append({
-                        "section": nxt, "dimension": "arc",
-                        "observed": round(fn["rms_dbfs"], 1),
-                        "expected": f"> {fp['rms_dbfs']:.1f}dBFS (+{DYNAMICS_TOLERANCE})",
-                        "severity": 0.7,
-                        "hint": f"'{nxt}' fails to rise above '{prev}' — "
-                                f"add notes/velocity or lift the lead register",
-                    })
+            if fp and fn and ne > pe + 0.05 and fn["rms_dbfs"] <= fp["rms_dbfs"] + DYNAMICS_TOLERANCE:
+                findings.append({
+                    "section": nxt, "dimension": "arc",
+                    "observed": round(fn["rms_dbfs"], 1),
+                    "expected": f"> {fp['rms_dbfs']:.1f}dBFS (+{DYNAMICS_TOLERANCE})",
+                    "severity": 0.7,
+                    "hint": f"'{nxt}' fails to rise above '{prev}' — "
+                            f"add notes/velocity or lift the lead register",
+                })
     return findings

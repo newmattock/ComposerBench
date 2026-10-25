@@ -7,8 +7,7 @@ import pytest
 
 from composerbench.analysis.wav import read_wav
 from composerbench.mixing import dsp
-from composerbench.mixing.loudness import (integrated_lufs, loudness_range, short_term_lufs, true_peak_db,
-                                        _k_sos)
+from composerbench.mixing.loudness import _k_sos, integrated_lufs, loudness_range, short_term_lufs, true_peak_db
 from composerbench.mixing.mixdown import MixError, run_mix, write_wav
 from composerbench.mixing.spec import Timeline
 
@@ -118,7 +117,7 @@ def _write_stems(tmp_path, sr=44100, seconds=16.0, bpm=120):
 
 
 def test_mix_spec_end_to_end(tmp_path):
-    beats = _write_stems(tmp_path)
+    _write_stems(tmp_path)
     spec = {
         "score": "score.json",
         "stems": {"drums": {}, "bass": {"mono_below_hz": 120},

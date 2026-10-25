@@ -30,7 +30,7 @@ import numpy as np
 from composerbench.analysis.wav import read_wav
 from composerbench.mixing import dsp
 from composerbench.mixing.loudness import integrated_lufs, loudness_summary, short_term_lufs, true_peak_db
-from composerbench.mixing.spec import MixSpec, Timeline, load_mix_spec
+from composerbench.mixing.spec import Timeline, load_mix_spec
 
 
 class MixError(ValueError):

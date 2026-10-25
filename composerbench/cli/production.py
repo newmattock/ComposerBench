@@ -78,7 +78,7 @@ async def cmd_devices(ns: argparse.Namespace) -> int:
     from composerbench.devices import catalog
     if ns.name == "refresh":
         from composerbench.devices.build_catalog import refresh_live
-        from composerbench.mcp.server import discover_cli
+        from composerbench.engine import discover_cli
         cli = discover_cli(ns.engine)
         if cli is None:
             print(json.dumps({"error": "magda_cli not found; pass --engine"}))

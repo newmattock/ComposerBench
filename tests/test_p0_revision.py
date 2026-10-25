@@ -1,10 +1,11 @@
 import asyncio
+
 import numpy as np
-import pytest
-from composerbench.adapter.fake import FakeDawAdapter
-from composerbench.agent.loop import RevisionLoop, Action, CriticConfig, LoopBudget
-from composerbench.composition.state import CompositionPlan, Section
 from test_p0_audio import wav
+
+from composerbench.adapter.fake import FakeDawAdapter
+from composerbench.agent.loop import Action, CriticConfig, LoopBudget, RevisionLoop
+from composerbench.composition.state import CompositionPlan, Section
 
 
 class AudioDaw(FakeDawAdapter):

@@ -4,7 +4,6 @@ import wave
 from pathlib import Path
 
 import numpy as np
-import pytest
 
 from composerbench.analysis.features import section_features
 from composerbench.critique.critic import criticize

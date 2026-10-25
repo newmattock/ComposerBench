@@ -7,11 +7,14 @@ and persist learned overrides to ~/.musicbench/semantics/learned/.
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
 
 from composerbench.adapter.base import RenderRequest
-from composerbench.semantics.registry import RoleRecipe, SemanticRegistry
 from composerbench.analysis.features import section_features
+from composerbench.semantics.registry import RoleRecipe, SemanticRegistry
+
+log = logging.getLogger(__name__)
 
 
 def _clone_with(recipe: RoleRecipe, names: list[str], value: float) -> RoleRecipe:
@@ -74,8 +77,8 @@ async def sweep(daw, track_name: str, recipe: RoleRecipe,
         if cleaner is not None:
             try:
                 await cleaner(clip.id)
-            except Exception:
-                pass  # cosmetic for the sweep
+            except Exception as e:  # noqa: BLE001 - cleanup must not mask the sweep's own result
+                log.warning("sweep could not delete its probe clip %s: %s", clip.id, e)
     return rows
 
 

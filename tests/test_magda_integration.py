@@ -4,19 +4,15 @@ Skipped automatically when magda-cli binary isn't built yet — unit suites
 must stay green on machines without the workstation build.
 """
 
-import json
-import shutil
 from pathlib import Path
 
 import pytest
 
 from composerbench.adapter.magda import InvalidNote, MagdaCliAdapter, parse_note_pitch
-from composerbench.errors import EntityNotFound
+from composerbench.engine import discover_cli
 from composerbench.model import Note
 
-MAGDA_CLI = Path(
-    "~/magda-core/cmake-build-debug/magda/daw/magda_cli_artefacts/Debug/magda_cli"
-).expanduser()
+MAGDA_CLI = discover_cli() or Path("/nonexistent/magda_cli")
 
 pytestmark = pytest.mark.skipif(
     not MAGDA_CLI.exists(), reason="magda-cli binary not built yet"
@@ -88,5 +84,4 @@ async def test_render_section_range(adapter: MagdaCliAdapter, tmp_path: Path):
     path = await adapter.render(req)
     out2 = tmp_path / "whole.wav"
     whole_path = await adapter.render(_RR(output_path=out2))
-    from composerbench.analysis.audio import analyze_wav
     assert whole_path.stat().st_size > path.stat().st_size

@@ -1,7 +1,7 @@
 import json
-from pathlib import Path
 import shutil
 import wave
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -10,9 +10,8 @@ from composerbench.adapter.base import RenderRequest
 from composerbench.analysis.audition import compare_audio, describe, excerpt, inspect_audio
 from composerbench.analysis.wav import read_wav, write_float_wav
 from composerbench.client import ComposerBench
-from composerbench.mcp.server import MCPServer, TOOLS
+from composerbench.mcp.server import TOOLS, MCPServer
 from composerbench.production import resample_audio
-
 
 requires_ffmpeg = pytest.mark.skipif(not shutil.which('ffmpeg'), reason='FFmpeg optional')
 
@@ -95,7 +94,7 @@ def test_gain_only_candidate_cannot_win_by_being_louder(tmp_path):
     assert report['verified_loudness'][0]['integrated_lufs'] == pytest.approx(-18, abs=.1)
     assert report['applied_gain_db'][1] - report['applied_gain_db'][0] == pytest.approx(-6.02, abs=.05)
     assert source.read_bytes() == original
-    before, rate = read_wav(report['files']['A'])
+    before, _rate = read_wav(report['files']['A'])
     after, _ = read_wav(report['files']['B'])
     measured_difference = 20 * np.log10(np.sqrt(np.mean(after**2)) / np.sqrt(np.mean(before**2)))
     assert abs(measured_difference) < .03

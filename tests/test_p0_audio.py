@@ -1,6 +1,8 @@
 import struct
+
 import numpy as np
 import pytest
+
 from composerbench.analysis.audio import analyze_wav
 from composerbench.analysis.features import section_features
 from composerbench.composition.state import CompositionPlan, Section

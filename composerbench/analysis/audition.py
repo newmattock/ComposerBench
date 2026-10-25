@@ -4,11 +4,11 @@ from __future__ import annotations
 import hashlib
 import json
 import math
-from pathlib import Path
 import shutil
 import subprocess
 import tempfile
 import uuid
+from pathlib import Path
 
 import numpy as np
 
@@ -48,7 +48,7 @@ def loudness(samples, rate):
         source = write_float_wav(Path(directory) / 'input.wav', samples, rate)
         result = subprocess.run([executable, '-nostdin', '-hide_banner', '-i', str(source),
                                  '-af', 'loudnorm=print_format=json', '-f', 'null', '-'],
-                                capture_output=True, text=True, timeout=120)
+                                capture_output=True, text=True, timeout=120, check=False)
     if result.returncode:
         raise RuntimeError(f'FFmpeg meter failed: {result.stderr[-1000:]}')
     values = None

@@ -11,7 +11,8 @@ import asyncio
 import time
 import traceback
 import uuid
-from typing import Any, Awaitable, Callable
+from collections.abc import Awaitable, Callable
+from typing import Any
 
 MAX_LOG = 300
 

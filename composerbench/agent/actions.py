@@ -1,7 +1,10 @@
 """Validated public edit vocabulary and batch preflight."""
 from __future__ import annotations
+
 from typing import Literal
+
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+
 from composerbench.model import Note
 
 

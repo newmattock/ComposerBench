@@ -1,10 +1,13 @@
 from pathlib import Path
+
 import pytest
-from composerbench.mcp.server import MCPServer, ServerConfig
-from composerbench.client import ComposerBench
 from test_p0_mcp import invoke
 
-CLI=Path('~/magda-core/cmake-build-debug/magda/daw/magda_cli_artefacts/Debug/magda_cli').expanduser()
+from composerbench.client import ComposerBench
+from composerbench.engine import discover_cli
+from composerbench.mcp.server import MCPServer
+
+CLI = discover_cli() or Path('/nonexistent/magda_cli')
 pytestmark=pytest.mark.skipif(not CLI.exists(),reason='MAGDA CLI unavailable')
 
 

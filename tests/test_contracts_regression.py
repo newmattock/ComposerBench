@@ -10,13 +10,11 @@ from pathlib import Path
 import pytest
 
 from composerbench.adapter import FakeDawAdapter
+from composerbench.engine import discover_cli
 from composerbench.evaluation.constraints import check_peak_below
-from composerbench.analysis.audio import AudioStats
 from composerbench.model import Note
 
-MAGDA_CLI = Path(
-    "~/magda-core/cmake-build-debug/magda/daw/magda_cli_artefacts/Debug/magda_cli"
-).expanduser()
+MAGDA_CLI = discover_cli() or Path("/nonexistent/magda_cli")
 
 pytestmark_magda = pytest.mark.skipif(
     not MAGDA_CLI.exists(), reason="magda-cli binary not built yet"
@@ -38,7 +36,6 @@ async def test_magda_projects_absolute_coordinates(tmp_path):
     """A note added at absolute beat 20 into a clip at 16 must read back
     as 20 (absolute), not 4 (clip-relative). This exact mismatch made the
     real revision loop measure climax energy as 0.00."""
-    import asyncio
 
     from composerbench.adapter.magda import MagdaCliAdapter
 

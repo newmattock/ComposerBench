@@ -41,6 +41,7 @@ def _dbfs(x: float) -> float:
 
 def analyze_wav(path: Path | str) -> AudioStats:
     import numpy as np
+
     from composerbench.analysis.wav import read_wav
     samples, sample_rate = read_wav(path)
     peak = float(np.max(np.abs(samples))) if samples.size else 0.0

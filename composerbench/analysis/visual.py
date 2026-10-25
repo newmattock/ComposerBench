@@ -4,14 +4,13 @@ from __future__ import annotations
 import hashlib
 import html
 import json
-from pathlib import Path
 import threading
 import uuid
+from pathlib import Path
 
 import numpy as np
 
 from composerbench.analysis.audition import describe, excerpt, loudness
-
 
 _PLOT_LOCK = threading.Lock()
 BANDS = [(20, 120), (120, 500), (500, 2000), (2000, 6000), (6000, 24000)]
@@ -90,8 +89,8 @@ def overlap_evidence(first, second, frequencies, times, origin):
 def visual_review(path, output_dir, start_seconds=0.0, duration_seconds=12.0, stems=None):
     """Write fixed-scale PNGs, JSON and a local HTML report for aligned WAVs."""
     try:
-        from matplotlib.figure import Figure
         from matplotlib.backends.backend_agg import FigureCanvasAgg
+        from matplotlib.figure import Figure
     except ImportError as error:
         raise RuntimeError('Install ComposerBench with the visual extra: pip install -e ".[visual]"') from error
     stems = {} if stems is None else stems

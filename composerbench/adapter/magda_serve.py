@@ -37,21 +37,32 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import os
 from pathlib import Path
 
 from composerbench.adapter.base import RenderRequest
 from composerbench.adapter.magda import MagdaCliAdapter
-from composerbench.model import Note
-from composerbench.params import (UnknownParameterLabel, annotate_host, choices_of,
-                               describe as describe_param, find as find_param, label_for,
-                               mark_host_wrapper, match as match_param, resolve_value)
 from composerbench.errors import (
+    ComposerBenchError,
     ConnectionLost,
     EntityNotFound,
-    ComposerBenchError,
     RenderFailed,
 )
+from composerbench.model import Note
+from composerbench.params import (
+    UnknownParameterLabel,
+    annotate_host,
+    choices_of,
+    label_for,
+    mark_host_wrapper,
+    resolve_value,
+)
+from composerbench.params import describe as describe_param
+from composerbench.params import find as find_param
+from composerbench.params import match as match_param
+
+log = logging.getLogger(__name__)
 
 
 class ServeCommandFailed(ComposerBenchError):
@@ -66,8 +77,10 @@ def with_suppressed_kill(proc: asyncio.subprocess.Process) -> None:
     """Kill a booting daemon, tolerating an already-exited process."""
     try:
         proc.kill()
-    except (ProcessLookupError, Exception):  # noqa: BLE001 - best effort
-        pass
+    except ProcessLookupError:
+        pass                        # already exited
+    except OSError as e:
+        log.debug("could not kill engine %s: %s", proc.pid, e)
 
 
 # Tracktion built-ins that `add-fx` accepts alongside magda_* ids (probe-verified).
@@ -213,7 +226,7 @@ class MagdaServeAdapter(MagdaCliAdapter):
             while True:
                 remaining = deadline - loop.time()
                 if remaining <= 0:
-                    raise asyncio.TimeoutError
+                    raise TimeoutError
                 line_bytes = await asyncio.wait_for(proc.stdout.readline(),
                                                     timeout=remaining)
                 if not line_bytes:  # EOF: daemon died during boot
@@ -232,7 +245,7 @@ class MagdaServeAdapter(MagdaCliAdapter):
                     # Keep the buffer small; boot logs can be long.
                     if len(chatter) > 50:
                         chatter.pop(0)
-        except asyncio.TimeoutError as e:
+        except TimeoutError as e:
             await self._drop_session()
             raise ConnectionLost(reason="serve-boot-timeout") from e
         except BaseException:
@@ -273,8 +286,8 @@ class MagdaServeAdapter(MagdaCliAdapter):
                 self._writer.write(b'{"op":"shutdown"}\n')
                 await self._writer.drain()
                 await asyncio.wait_for(self._reader.readline(), timeout=10)
-            except Exception:  # noqa: BLE001 - best-effort shutdown
-                pass
+            except (TimeoutError, OSError, ConnectionError) as e:
+                log.debug("engine did not acknowledge shutdown: %s", e)   # killed below
         await self._drop_session()
 
     async def _drop_session(self) -> None:
@@ -284,8 +297,8 @@ class MagdaServeAdapter(MagdaCliAdapter):
         if self._writer is not None:
             try:
                 self._writer.close()
-            except Exception:  # noqa: BLE001
-                pass
+            except (OSError, RuntimeError) as e:
+                log.debug("closing the engine socket failed: %s", e)
         self._writer = self._reader = None
         if self._serve_proc is not None and self._serve_proc.returncode is None:
             self._serve_proc.kill()
@@ -335,7 +348,7 @@ class MagdaServeAdapter(MagdaCliAdapter):
         except (ConnectionResetError, BrokenPipeError) as e:
             await self._drop_session()
             raise ConnectionLost(reason="serve-connection-lost") from e
-        except asyncio.TimeoutError as e:
+        except TimeoutError as e:
             await self._drop_session()
             raise ConnectionLost(reason="serve-request-timeout") from e
 

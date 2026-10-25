@@ -248,7 +248,7 @@ async def refresh_live(cli_path: Path | str, work_dir: Path | str,
     """Probe every catalogued internal device on a running engine and write a
     user catalog (labels straight from the protocol-2 dump)."""
     from composerbench.adapter.magda_serve import MagdaServeAdapter
-    from composerbench.devices.catalog import load_catalog, USER_CATALOG
+    from composerbench.devices.catalog import USER_CATALOG, load_catalog
 
     base = load_catalog(user=False)
     work = Path(work_dir)

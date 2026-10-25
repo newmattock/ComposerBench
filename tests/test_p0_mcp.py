@@ -1,6 +1,6 @@
 import jsonschema
-import pytest
-from composerbench.mcp.server import MCPServer, ServerConfig, build_client, TOOLS
+
+from composerbench.mcp.server import TOOLS, MCPServer, ServerConfig, build_client
 
 
 async def invoke(server, tool_name, **args):

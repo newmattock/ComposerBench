@@ -158,3 +158,15 @@ async def test_revision_loop_keeps_audible_render(tmp_path: Path):
                         budget=LoopBudget(max_iterations=1))
     history = await loop.run(["arpeggio"])
     assert history[0].decision == "accepted"
+
+
+def test_global_manifest_is_consulted(tmp_path, monkeypatch):
+    # regression: a second definition of audible_instruments_for used to
+    # shadow this one and silently skip the global manifest
+    from composerbench.adapter import instruments
+    manifest = tmp_path / "instrument_manifest.json"
+    manifest.write_text('{"binary": "test", "instruments": [{"id": "Custom_Synth", "audible": true}]}')
+    monkeypatch.setattr(instruments, "GLOBAL_MANIFEST", manifest)
+    audible, source = instruments.audible_instruments_for(tmp_path / "project")
+    assert audible == frozenset({"custom_synth"})
+    assert source.startswith("global manifest")

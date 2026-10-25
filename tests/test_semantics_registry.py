@@ -1,11 +1,10 @@
 """Semantic role registry tests."""
 import json
-from pathlib import Path
 
 import pytest
 import yaml
 
-from composerbench.semantics.registry import SemanticRegistry, RoleRecipe
+from composerbench.semantics.registry import SemanticRegistry
 
 
 @pytest.fixture

@@ -24,29 +24,26 @@ Tool-originated failures are reported with isError=true inside the result
 from __future__ import annotations
 
 import json
+import logging
 import os
 import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from composerbench.agent.actions import Action
 from composerbench.client import ComposerBench
 from composerbench.composition.state import CompositionPlan, Intent
-from composerbench.errors import (MagdaCliNotFound, ComposerBenchError, NoProject, ProjectExists,
-                               ProjectNotFound)
+from composerbench.engine import CLI_CANDIDATES, discover_cli
+from composerbench.errors import ComposerBenchError, MagdaCliNotFound, NoProject, ProjectExists, ProjectNotFound
+from composerbench.evaluation.comparison import Objective
 from composerbench.model import Note
+from composerbench.production import GainPoint, Slice
 
 PROTOCOL_VERSION = "2025-11-25"
 SERVER_INFO = {"name": "composerbench", "version": "0.1.0"}
 
 DEFAULT_WORKSPACE = Path.home() / "Music" / "ComposerBench" / "projects"
-CLI_CANDIDATES = (
-    "~/magda-core/cmake-build-debug/magda/daw/magda_cli_artefacts/Debug/magda_cli",
-    "~/magda-core/cmake-build-release/magda/daw/magda_cli_artefacts/Release/magda_cli",
-    "~/magda-core/build/magda/daw/magda_cli_artefacts/Release/magda_cli",
-    "~/magda-core/build/magda/daw/magda_cli_artefacts/Debug/magda_cli",
-    "~/magda-core/build/magda/daw/magda_cli_artefacts/RelWithDebInfo/magda_cli",
-)
 
 INSTRUCTIONS = """ComposerBench drives the MAGDA DAW (a real engine with synths, drum machines, \
 effects and hosted VST3/AU plugins) and renders audio you can analyze.
@@ -75,6 +72,8 @@ drops, tape stop/stutter/reverse swell, bus glue, LUFS target + true-peak ceilin
 mix spec (seconds per pass) using music_section_report numbers instead of guessing."""
 
 _OBJ = {"type": "object", "properties": {}}
+
+log = logging.getLogger(__name__)
 
 
 def _schema(props: dict[str, Any], required: list[str] | None = None) -> dict[str, Any]:
@@ -189,9 +188,7 @@ TOOLS: list[dict[str, Any]] = [
 
 
 # One schema registry serves discovery and input validation.
-from composerbench.agent.actions import Action
-from composerbench.evaluation.comparison import Objective
-from composerbench.production import Slice, GainPoint
+
 _STRING = {'type': 'string', 'minLength': 1}
 _NUMBER = {'type': 'number'}
 _ACTION = Action.model_json_schema()
@@ -294,20 +291,6 @@ class ServerConfig:
     workspace: str = ""
 
 
-def discover_cli(explicit: str | None = None) -> Path | None:
-    """The magda_cli binary: explicit path, $COMPOSERBENCH_CLI, then known build dirs."""
-    if explicit:
-        path = Path(explicit).expanduser()
-        if path.is_file():          # an explicit choice is trusted as given
-            return path
-    for candidate in [os.environ.get("COMPOSERBENCH_CLI", "")] + list(CLI_CANDIDATES):
-        if candidate:
-            path = Path(candidate).expanduser()
-            if path.is_file() and os.access(path, os.X_OK):
-                return path
-    return None
-
-
 def effective_adapter(cfg: ServerConfig) -> str:
     if cfg.adapter != "auto":
         return cfg.adapter
@@ -376,8 +359,8 @@ class MCPServer:
         old, self.client = self.client, new_client
         try:
             await old.close()
-        except Exception:  # noqa: BLE001 - never let a dead engine block the switch
-            pass
+        except Exception as e:  # noqa: BLE001 - never let a dead engine block the switch
+            log.warning("previous project did not close cleanly: %s", e)
         self.project_path = str(getattr(new_client.daw, "project", path))
         return {"project": self.project_path, **(await new_client.project()).model_dump()}
 
@@ -753,6 +736,7 @@ class MCPServer:
 
     async def _tool_music_mixdown(self, args):
         import asyncio
+
         from composerbench.mixing.mixdown import run_mix
         source = self._spec_source(args, 'spec')
 
@@ -788,6 +772,7 @@ class MCPServer:
     async def _tool_music_section_report(self, args):
         import asyncio
         import json as _json
+
         from composerbench.analysis.sections import section_report
         from composerbench.analysis.wav import read_wav
         from composerbench.mixing.dsp import as_stereo

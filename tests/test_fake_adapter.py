@@ -1,11 +1,10 @@
-import asyncio
 import json
 from pathlib import Path
 
 import pytest
 
 from composerbench.adapter import FakeDawAdapter, RenderRequest
-from composerbench.errors import EntityNotFound, ComposerBenchError, ParameterOutOfRange
+from composerbench.errors import EntityNotFound, ParameterOutOfRange
 from composerbench.model import Note
 
 
@@ -72,7 +71,7 @@ async def test_render_writes_real_audio_file(tmp_path: Path):
 
 async def test_snapshot_restore_reverts_edits():
     daw = FakeDawAdapter()
-    t = await daw.create_track("drums")
+    await daw.create_track("drums")
     snap = await daw.snapshot("before_edit")
     await daw.delete_track("track:drums")
     tracks_after = await daw.get_tracks()

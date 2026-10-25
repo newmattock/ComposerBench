@@ -26,9 +26,9 @@ from composerbench.adapter.instruments import (
     audible_instruments_for,
 )
 from composerbench.errors import (
+    ComposerBenchError,
     ConnectionLost,
     EntityNotFound,
-    ComposerBenchError,
     UnsupportedOperation,
 )
 from composerbench.model import Clip, Device, Note, ProjectInfo, Track
@@ -525,7 +525,6 @@ class MagdaCliAdapter(DawAdapter):
         return str(snap_dir / self.project.name)
 
     async def restore_snapshot(self, snapshot_id: str) -> None:
-        import json
 
         snap = Path(snapshot_id)
         if not snap.exists():

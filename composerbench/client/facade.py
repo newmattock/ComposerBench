@@ -8,8 +8,8 @@ One object exposing project/tracks/edits/render + sidecar intent/plan.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
 from composerbench.adapter.base import DawAdapter, RenderRequest
 from composerbench.adapter.fake import FakeDawAdapter
@@ -24,14 +24,14 @@ class ComposerBench:
         self._daw_adapter_type = type(daw)
 
     @classmethod
-    def connect_fake(cls, project_dir: Path | str = ".") -> "ComposerBench":
+    def connect_fake(cls, project_dir: Path | str = ".") -> ComposerBench:
         root = Path(project_dir)
         state = root / ".musicbench" / "fake_state.json"
         return cls(FakeDawAdapter(state_file=state), SidecarStore(root))
 
     @classmethod
     def connect_magda(cls, cli_path: Path | str, project_path: Path | str,
-                      serve: bool = False) -> "ComposerBench":
+                      serve: bool = False) -> ComposerBench:
         if serve:
             from composerbench.adapter.magda_serve import MagdaServeAdapter
             daw = MagdaServeAdapter(cli_path, project_path)
@@ -182,23 +182,27 @@ class ComposerBench:
 
     async def audio_inspect(self, **arguments):
         import asyncio
+
         from composerbench.analysis.audition import inspect_audio
         return await asyncio.to_thread(inspect_audio, **arguments)
 
     async def audio_visual_review(self, **arguments):
         import asyncio
+
         from composerbench.analysis.visual import visual_review
         arguments.setdefault('output_dir', self.sidecar.renders)
         return await asyncio.to_thread(visual_review, **arguments)
 
     async def audio_compare(self, **arguments):
         import asyncio
+
         from composerbench.analysis.audition import compare_audio
         arguments.setdefault('output_dir', self.sidecar.renders)
         return await asyncio.to_thread(compare_audio, **arguments)
 
     async def audio_resample(self, **arguments):
         import asyncio
+
         from composerbench.production import resample_audio
         arguments.setdefault('output_dir', self.sidecar.renders)
         return await asyncio.to_thread(resample_audio, **arguments)
@@ -244,7 +248,8 @@ class ComposerBench:
         describe = getattr(self.daw, 'describe_parameter', None)
         if describe is not None:
             return await describe(track, device, parameter)
-        from composerbench.params import describe as describe_param, find
+        from composerbench.params import describe as describe_param
+        from composerbench.params import find
         key, meta = find(await self.daw.get_parameters(track, device), parameter)
         return {'index': key, **describe_param(meta)}
 
@@ -283,7 +288,8 @@ class ComposerBench:
 
     async def batch(self, actions, timeout_seconds: float = 120):
         import asyncio
-        from composerbench.agent.actions import preflight, apply
+
+        from composerbench.agent.actions import apply, preflight
         from composerbench.transactions import Transaction
         if not 0 < timeout_seconds <= 3600: raise ValueError('timeout must be in (0, 3600] seconds')
         async with asyncio.timeout(timeout_seconds):
@@ -339,6 +345,7 @@ class ComposerBench:
 
     async def snapshot(self, label):
         import hashlib
+
         from composerbench.transactions import capture_sidecar, transaction_lock
         async with transaction_lock(self.daw):
             sid = await self.daw.snapshot(label)
@@ -348,6 +355,7 @@ class ComposerBench:
 
     async def restore_snapshot(self, sid):
         import hashlib
+
         from composerbench.transactions import restore_sidecar, transaction_lock
         async with transaction_lock(self.daw):
             await self.daw.restore_snapshot(sid)
@@ -355,7 +363,7 @@ class ComposerBench:
             if target.exists(): restore_sidecar(self.sidecar.root, target)
 
     async def critique(self, path):
-        from composerbench.agent.loop import RevisionLoop, CriticConfig
+        from composerbench.agent.loop import CriticConfig, RevisionLoop
         plan, intent = await self.read_plan(), await self.read_intent()
         loop = RevisionLoop(self.daw, plan, lambda _: [], self.sidecar.renders,
                             critic=CriticConfig(enabled=True, intent_emotion=intent.emotion,
@@ -366,7 +374,7 @@ class ComposerBench:
     async def revise(self, goal, actions, objectives=None, timeout_seconds=120,
                      critic=False, auto_fix=False, max_peak_dbfs=-0.5,
                      audition_start_seconds=None, audition_duration_seconds=8.0):
-        from composerbench.agent.loop import RevisionLoop, LoopBudget, CriticConfig, RenderConstraints
+        from composerbench.agent.loop import CriticConfig, LoopBudget, RenderConstraints, RevisionLoop
         async def propose(_):
             return await self._resolve_actions(actions)
         loop = RevisionLoop(self.daw, await self.read_plan(), propose,

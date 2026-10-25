@@ -13,9 +13,9 @@ converted to the 1-based bars of ``CompositionPlan`` by ``to_plan()``.
 from __future__ import annotations
 
 import json
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterable
 
 from composerbench.composition.patterns import Note, chord_pitch_classes
 
@@ -74,7 +74,7 @@ class Score:
 
     # ------------------------------------------------------------ sections --
     @classmethod
-    def from_bars(cls, bpm: float, sections: Iterable, beats_per_bar: int = 4, **kw) -> "Score":
+    def from_bars(cls, bpm: float, sections: Iterable, beats_per_bar: int = 4, **kw) -> Score:
         """Contiguous sections from (name, bars[, kind[, key_shift[, energy]]]) tuples or dicts."""
         sc = cls(bpm=bpm, beats_per_bar=beats_per_bar, **kw)
         t = 0.0
@@ -102,7 +102,7 @@ class Score:
         return range(int(s.start // self.beats_per_bar), int(s.end // self.beats_per_bar))
 
     # -------------------------------------------------------------- chords --
-    def chords_from_bars(self, symbols: Iterable[str | list[str] | None], start_bar: int = 0) -> "Score":
+    def chords_from_bars(self, symbols: Iterable[str | list[str] | None], start_bar: int = 0) -> Score:
         """One entry per bar; a list splits that bar evenly; None leaves it empty."""
         for i, sym in enumerate(symbols):
             bar_start = self.beat(start_bar + i)
@@ -125,11 +125,11 @@ class Score:
         return None if c is None else chord_pitch_classes(c.symbol)
 
     # --------------------------------------------------------------- parts --
-    def add(self, part: str, notes: Iterable[Note]) -> "Score":
+    def add(self, part: str, notes: Iterable[Note]) -> Score:
         self.parts.setdefault(part, []).extend(dict(n) for n in notes)
         return self
 
-    def sort(self) -> "Score":
+    def sort(self) -> Score:
         for ns in self.parts.values():
             ns.sort(key=lambda n: (n["start"], n["pitch"]))
         return self
@@ -175,7 +175,7 @@ class Score:
                 "parts": self.parts, "meta": self.meta}
 
     @classmethod
-    def from_dict(cls, d: dict) -> "Score":
+    def from_dict(cls, d: dict) -> Score:
         return cls(bpm=float(d["bpm"]), beats_per_bar=int(d.get("beats_per_bar", 4)),
                    sections=[Section(**s) for s in d.get("sections", [])],
                    chords=[Chord(**c) for c in d.get("chords", [])],
@@ -189,12 +189,13 @@ class Score:
         return path
 
     @classmethod
-    def load(cls, path: Path | str) -> "Score":
+    def load(cls, path: Path | str) -> Score:
         return cls.from_dict(json.loads(Path(path).read_text()))
 
     def to_plan(self):
         """The section layout as a CompositionPlan (1-based bars) for intent/critic tools."""
-        from composerbench.composition.state import CompositionPlan, Section as PlanSection
+        from composerbench.composition.state import CompositionPlan
+        from composerbench.composition.state import Section as PlanSection
         secs = []
         for s in self.sections:
             bars = max(1, round((s.end - s.start) / self.beats_per_bar))

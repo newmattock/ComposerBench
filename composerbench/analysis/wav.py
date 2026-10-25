@@ -1,6 +1,7 @@
 """RIFF/WAVE decoding to normalized, frame-by-channel float64 samples."""
-from pathlib import Path
 import struct
+from pathlib import Path
+
 import numpy as np
 
 

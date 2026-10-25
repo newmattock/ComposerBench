@@ -3,13 +3,13 @@ from __future__ import annotations
 
 import hashlib
 import json
-from pathlib import Path
 import uuid
+from pathlib import Path
 
 import numpy as np
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from composerbench.analysis.audition import excerpt, describe
+from composerbench.analysis.audition import describe, excerpt
 from composerbench.analysis.wav import write_float_wav
 
 
@@ -66,6 +66,7 @@ def resample_audio(source, output_dir, slices, gain_points=None, fade_ms=3.0):
             import shutil
             import subprocess
             import tempfile
+
             from composerbench.analysis.wav import read_wav
             executable = shutil.which('ffmpeg')
             if not executable:
@@ -76,7 +77,7 @@ def resample_audio(source, output_dir, slices, gain_points=None, fade_ms=3.0):
                 command = [executable, '-nostdin', '-hide_banner', '-loglevel', 'error',
                            '-i', str(original), '-af', f'asetrate={round(rate * ratio)},aresample={rate}',
                            '-c:a', 'pcm_f32le', str(shifted)]
-                result = subprocess.run(command, capture_output=True, text=True, timeout=120)
+                result = subprocess.run(command, capture_output=True, text=True, timeout=120, check=False)
                 if result.returncode:
                     raise RuntimeError(result.stderr[-1000:])
                 part, _ = read_wav(shifted)

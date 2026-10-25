@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from composerbench.agent.loop import Action, LoopBudget, RevisionLoop
 from composerbench.adapter import FakeDawAdapter
+from composerbench.agent.loop import Action, LoopBudget, RevisionLoop
 from composerbench.analysis.audio import analyze_wav
 from composerbench.composition.state import CompositionPlan, Section
 from composerbench.model import Note

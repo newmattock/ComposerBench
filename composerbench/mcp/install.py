@@ -50,7 +50,8 @@ def _search_path() -> str:
 
 def server_entry(python: str | None = None, cli: str | None = None,
                  workspace: str | None = None, adapter: str = "magda_serve") -> dict[str, Any]:
-    from composerbench.mcp.server import DEFAULT_WORKSPACE, discover_cli
+    from composerbench.engine import discover_cli
+    from composerbench.mcp.server import DEFAULT_WORKSPACE
     found = discover_cli(cli)
     package_root = Path(__file__).resolve().parents[2]   # .../composerbench (repo root)
     env = {"COMPOSERBENCH_ADAPTER": adapter if found else "auto",
@@ -106,8 +107,8 @@ def install_claude_code(entry: dict[str, Any], name: str = SERVER_NAME,
     if dry_run:
         return {"client": "claude-code", "status": "would-run", "command": cmd}
     subprocess.run([claude, "mcp", "remove", "--scope", "user", name],
-                   capture_output=True, text=True, timeout=60)
-    proc = subprocess.run([claude, *cmd[1:]], capture_output=True, text=True, timeout=60)
+                   capture_output=True, text=True, timeout=60, check=False)
+    proc = subprocess.run([claude, *cmd[1:]], capture_output=True, text=True, timeout=60, check=False)
     return {"client": "claude-code", "status": "updated" if proc.returncode == 0 else "failed",
             "output": (proc.stdout + proc.stderr).strip()[-800:]}
 

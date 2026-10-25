@@ -30,13 +30,14 @@ import re
 import shutil
 import sys
 import time
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
-from composerbench.devices.catalog import check_value, device as catalog_device, load_catalog
+from composerbench.devices.catalog import check_value, load_catalog
+from composerbench.devices.catalog import device as catalog_device
 from composerbench.errors import ComposerBenchError
-from composerbench.song.spec import (ResolvedTrack, SongSpec, load_score, load_spec, resolve, song_bpm,
-                                  song_length)
+from composerbench.song.spec import ResolvedTrack, SongSpec, load_score, load_spec, resolve, song_bpm, song_length
 
 MARKER = ".musicbench_song"
 SAMPLE_RATE_GUESS = 44100
@@ -239,7 +240,7 @@ async def build_song(source, out_dir: str | Path | None = None, cli_path: str | 
     daw = adapter
     if own:
         from composerbench.adapter.magda_serve import MagdaServeAdapter
-        from composerbench.mcp.server import discover_cli
+        from composerbench.engine import discover_cli
         cli = discover_cli(str(cli_path) if cli_path else None)
         if cli is None:
             from composerbench.errors import MagdaCliNotFound
@@ -309,8 +310,8 @@ async def build_song(source, out_dir: str | Path | None = None, cli_path: str | 
         if own and daw is not None:
             try:
                 await daw.shutdown()
-            except Exception:  # noqa: BLE001
-                pass
+            except Exception as e:  # noqa: BLE001 - the renders are already on disk
+                report.setdefault("warnings", []).append(f"engine shutdown failed: {type(e).__name__}: {e}")
         write_report()
     say("done", {"seconds": report["timings"]["total"], "problems": len(report["problems"])})
     return report

@@ -23,9 +23,10 @@ Everything here is pure and adapter-independent so it can be unit tested.
 from __future__ import annotations
 
 import math
-from typing import Any, Iterable
+from collections.abc import Iterable
+from typing import Any
 
-from composerbench.errors import EntityNotFound, ComposerBenchError
+from composerbench.errors import ComposerBenchError, EntityNotFound
 
 
 class UnknownParameterLabel(ComposerBenchError, ValueError):
@@ -169,7 +170,7 @@ def resolve_value(meta: dict[str, Any], requested: Any) -> float:
                 raise UnknownParameterLabel(
                     parameter=name, requested=text, choices=[],
                     hint="this parameter is continuous; pass a number within its range",
-                    range=list(_bounds(meta)), unit=meta.get("unit", ""))
+                    range=list(_bounds(meta)), unit=meta.get("unit", "")) from None
             want = _norm(text)
             exact = [i for i, c in enumerate(choices) if _norm(c) == want]
             if not exact:
@@ -178,7 +179,7 @@ def resolve_value(meta: dict[str, Any], requested: Any) -> float:
                 exact = [i for i, c in enumerate(choices) if _norm(c).startswith(want)]
             if len(exact) != 1:
                 raise UnknownParameterLabel(parameter=name, requested=text, choices=choices,
-                                            ambiguous=len(exact) > 1)
+                                            ambiguous=len(exact) > 1) from None
             return index_to_value(meta, exact[0])
     try:
         value = float(requested)

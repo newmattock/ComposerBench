@@ -58,7 +58,7 @@ async def test_role_label_is_resolved_against_the_plugins_own_labels(emu):
     assert cutoff["param"] == "A Filter 1 Cutoff" and cutoff["value"] == 0.58
     assert not any("?" in s for s in report["steps"])
     # reverb_wet keeps driving the wrapper gain, never Dragonfly's own Dry Level
-    reverb = [d for d in await daw.get_devices_full("track:pad") if d["name"] == "Dragonfly Hall Reverb"][0]
+    reverb = next(d for d in await daw.get_devices_full("track:pad") if d["name"] == "Dragonfly Hall Reverb")
     params = await daw.get_parameters("track:pad", reverb["id"])
     assert by_name(params, "Wet Level", "host")["value"] == 0.35
     assert by_name(params, "Dry Level")["value"] == 0.8

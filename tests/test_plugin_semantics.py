@@ -4,7 +4,6 @@ from composerbench.plugins.semantics import (
     DEFAULT_FOUR_OSC,
     ParameterIntent,
     SemanticLayer,
-    SemanticProfile,
 )
 
 

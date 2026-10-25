@@ -6,10 +6,10 @@ it programs against this interface only.
 
 from __future__ import annotations
 
+import math
 from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass
 from pathlib import Path
-import math
 from typing import Any
 
 from composerbench.model import Clip, Device, Note, ProjectInfo, Track

@@ -1,11 +1,13 @@
 """Transforms + planner tests (Sprint D1/D2)."""
-import pytest
 
+from composerbench.composition.planner import plan_arrangement
 from composerbench.composition.state import CompositionPlan, Section
 from composerbench.composition.transforms import (
-    fragment, octave_lift, thin, transpose, velocity_shape,
+    octave_lift,
+    thin,
+    transpose,
+    velocity_shape,
 )
-from composerbench.composition.planner import plan_arrangement
 from composerbench.model import Note
 
 

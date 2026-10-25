@@ -15,7 +15,6 @@ def fixes_for_findings(findings: list[dict], role_of_track: dict[str, str] | Non
     actions: list[Action] = []
     for f in findings:
         dim = f.get("dimension")
-        sec = f.get("section", "")
         if dim == "brightness":
             if f["observed"] < 300:
                 # too dark: nudge lead/pad velocity up via volume lift on the

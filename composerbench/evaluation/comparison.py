@@ -1,5 +1,6 @@
 """Explicit goal metrics. A gain-only change cannot win a timbral goal."""
 from typing import Literal
+
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 

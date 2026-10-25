@@ -1,4 +1,3 @@
-from pathlib import Path
 
 from composerbench.analysis.energy import estimate_energy
 from composerbench.analysis.symbolic import analyze_notes, slice_notes

@@ -7,7 +7,10 @@ from __future__ import annotations
 
 from composerbench.composition.state import CompositionPlan, Section
 from composerbench.composition.transforms import (
-    fragment, octave_lift, thin, velocity_shape,
+    fragment,
+    octave_lift,
+    thin,
+    velocity_shape,
 )
 from composerbench.model import Note
 

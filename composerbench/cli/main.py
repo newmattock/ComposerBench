@@ -125,12 +125,12 @@ async def cmd_doctor(ns: argparse.Namespace) -> int:
     import tempfile
     import wave
 
+    from composerbench.adapter.base import RenderRequest
     from composerbench.adapter.instruments import (
         ALLOW_ANY_ENV,
         KNOWN_AUDIBLE_INSTRUMENTS,
         write_manifest,
     )
-    from composerbench.adapter.base import RenderRequest
     from composerbench.adapter.magda import MagdaCliAdapter
     from composerbench.model import Note
 
@@ -248,13 +248,12 @@ def _serve_daw(args: argparse.Namespace):
 
 async def cmd_serve(ns: argparse.Namespace) -> int:
     """Run the persistent engine in the foreground until Ctrl-C."""
-    daw = await _serve_daw(ns).__aenter__() if False else None  # noqa: F841
+    daw = await _serve_daw(ns).__aenter__() if False else None
     from composerbench.adapter.magda_serve import MagdaServeAdapter
     daw = MagdaServeAdapter(ns.cli, Path(ns.project))
     await daw.initialize()
     print(f"composerbench engine serving on {daw._sock_path} (Ctrl-C to stop)")
     try:
-        import signal
         while True:
             await asyncio.sleep(3600)
     except (KeyboardInterrupt, asyncio.CancelledError):
@@ -301,7 +300,7 @@ async def cmd_add_plugin(ns: argparse.Namespace) -> int:
 
 
 async def cmd_probe_device(ns: argparse.Namespace) -> int:
-    from composerbench.adapter.instruments import GLOBAL_MANIFEST, manifest_path_for
+    from composerbench.adapter.instruments import GLOBAL_MANIFEST
     daw = _serve_daw(ns)
     try:
         await daw.initialize()
@@ -373,7 +372,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--project", default=".")
     p.add_argument(
         "--cli",
-        default="~/magda-core/cmake-build-debug/magda/daw/magda_cli_artefacts/Debug/magda_cli",
+        default=None,
+        help="magda_cli path (default: $COMPOSERBENCH_CLI, then ~/magda-core build folders)",
     )
     p.add_argument("--json", action="store_true", help="machine-readable output")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -460,6 +460,10 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    if getattr(args, "cli", "unset") is None:
+        from composerbench.engine import candidates, discover_cli
+        found = discover_cli()
+        args.cli = str(found or candidates()[0])   # a missing path reports "not found" downstream
     try:
         return asyncio.run(args.func(args))
     except ComposerBenchError as e:

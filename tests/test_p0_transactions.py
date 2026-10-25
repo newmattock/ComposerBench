@@ -1,10 +1,12 @@
 import asyncio
 from pathlib import Path
+
 import pytest
+
 from composerbench.adapter.fake import FakeDawAdapter
 from composerbench.adapter.magda import MagdaCliAdapter
 from composerbench.client import ComposerBench
-from composerbench.composition.state import SidecarStore, Intent
+from composerbench.composition.state import Intent, SidecarStore
 from composerbench.transactions import Transaction
 
 

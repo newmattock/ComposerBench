@@ -1,23 +1,31 @@
 """Transactional propose/render/compare loop with explicit evidence of improvement."""
 from __future__ import annotations
+
 import asyncio
 import inspect
 import json
 import math
 import time
 import uuid
+from collections.abc import Awaitable, Callable
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any, Awaitable, Callable
+from typing import Any
 
 from composerbench.adapter.base import DawAdapter, RenderRequest
-from composerbench.adapter.instruments import KNOWN_AUDIBLE_INSTRUMENTS  # compatibility
-from composerbench.agent.actions import Action, apply as _apply, preflight
+from composerbench.agent.actions import Action, preflight
+from composerbench.agent.actions import apply as _apply
 from composerbench.analysis.diff import diff_tracks
 from composerbench.composition.state import CompositionPlan, Intent, SidecarStore
-from composerbench.evaluation.constraints import ConstraintResult, check_audible, check_energy_relation, check_no_vocals, check_peak_below
 from composerbench.evaluation.comparison import Objective, compare
-from composerbench.transactions import Transaction, RollbackError
+from composerbench.evaluation.constraints import (
+    ConstraintResult,
+    check_audible,
+    check_energy_relation,
+    check_no_vocals,
+    check_peak_below,
+)
+from composerbench.transactions import RollbackError, Transaction
 
 
 @dataclass
@@ -267,7 +275,7 @@ class RevisionLoop:
             raise
         except RollbackError:
             raise  # never claim recovery if recovery itself failed
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - any failed revision is recorded and rejected
             rec.decision = 'rejected'
             rec.reason = f'{type(e).__name__}: {e}'
             rec.constraint_results.append(ConstraintResult('execution', False, rec.reason).to_dict())

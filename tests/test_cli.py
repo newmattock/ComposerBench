@@ -1,11 +1,7 @@
-from pathlib import Path
 import json
 import subprocess
 import sys
-
-import pytest
-
-from composerbench.cli.main import main
+from pathlib import Path
 
 
 def run_cli(*argv, cwd=None):
@@ -31,8 +27,8 @@ def test_inspect_track_json_and_symbolic_stats(tmp_path):
 
     async def seed():
         mb = ComposerBench.connect_fake(tmp_path)
-        t = await mb.create_track("piano")
-        c = await mb.create_clip("piano", "v1", 0.0, 8.0)
+        await mb.create_track("piano")
+        await mb.create_clip("piano", "v1", 0.0, 8.0)
         await mb.add_notes("piano", clip="v1",
                            notes=[Note(start=i * 2, duration=1.0, pitch=60 + i, velocity=90)
                                   for i in range(4)])

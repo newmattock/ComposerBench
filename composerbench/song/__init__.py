@@ -1,8 +1,16 @@
 """Declarative song building: spec -> MAGDA project -> mix + stem renders."""
 from composerbench.song.spec import DeviceSpec, RenderSpec, SongSpec, TrackSpec, load_spec, resolve
 
-__all__ = ["DeviceSpec", "RenderSpec", "SongSpec", "TrackSpec", "load_spec", "resolve",
-           "build_song", "check_song"]
+__all__ = [
+    "DeviceSpec",
+    "RenderSpec",
+    "SongSpec",
+    "TrackSpec",
+    "build_song",
+    "check_song",
+    "load_spec",
+    "resolve",
+]
 
 
 def __getattr__(name):           # lazy: build pulls in the adapter stack

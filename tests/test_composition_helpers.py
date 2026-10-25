@@ -2,9 +2,24 @@
 import pytest
 
 from composerbench.analysis.harmony import check_score, clash_report, density_report, range_report
-from composerbench.composition.patterns import (arpeggio, chord_pitch_classes, chord_root, hits, humanize,
-                                             legato, midi, note, parse_chord, progression, ramp, repeat,
-                                             stutter, transpose, trim, voicing)
+from composerbench.composition.patterns import (
+    arpeggio,
+    chord_pitch_classes,
+    chord_root,
+    hits,
+    humanize,
+    legato,
+    midi,
+    note,
+    parse_chord,
+    progression,
+    ramp,
+    repeat,
+    stutter,
+    transpose,
+    trim,
+    voicing,
+)
 from composerbench.composition.score import Score
 
 

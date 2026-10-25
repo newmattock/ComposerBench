@@ -1,4 +1,3 @@
-import io
 import math
 import struct
 import wave
@@ -49,7 +48,7 @@ def test_quiet_file_has_floor_not_negative_infinity(tmp_path):
 
 
 def test_delta_stats_direction():
-    loud = analyze_wav.__wrapped__ if hasattr(analyze_wav, "__wrapped__") else None
+    analyze_wav.__wrapped__ if hasattr(analyze_wav, "__wrapped__") else None
     from composerbench.analysis.audio import AudioStats
 
     a = AudioStats(1.0, 44100, 2, -12.0, -18.0, 6.0, 0.0)

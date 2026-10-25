@@ -6,7 +6,6 @@ RMS, spectral centroid, 3-band energy split, stereo width, transient density.
 from __future__ import annotations
 
 import math
-import wave
 from pathlib import Path
 
 import numpy as np

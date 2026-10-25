@@ -1,8 +1,15 @@
 """Parameter meaning: labels in, labels out (composerbench.params)."""
 import pytest
 
-from composerbench.params import (ParameterNotFound, ParameterValueInvalid, UnknownParameterLabel,
-                               describe, find, label_for, resolve_value)
+from composerbench.params import (
+    ParameterNotFound,
+    ParameterValueInvalid,
+    UnknownParameterLabel,
+    describe,
+    find,
+    label_for,
+    resolve_value,
+)
 
 ENGINE = {"name": "Engine", "value": 0.0, "min": 0.0, "max": 2.0, "choices": ["Plate", "Hall", "Room"]}
 DIVISION = {"name": "Division", "value": 7.0, "min": 0.0, "max": 13.0,

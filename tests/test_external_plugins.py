@@ -8,18 +8,16 @@ import asyncio
 import json
 import os
 import pathlib
-import shutil
 import subprocess
 import sys
 
 import pytest
 
+from composerbench.engine import discover_cli
+
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 
-CLI = pathlib.Path(
-    "~/magda-core/cmake-build-debug/magda/daw/"
-    "magda_cli_artefacts/Debug/magda_cli"
-).expanduser()
+CLI = discover_cli() or pathlib.Path("/nonexistent/magda_cli")
 
 pytestmark = pytest.mark.skipif(
     not CLI.exists(), reason="magda_cli binary not built"
@@ -40,7 +38,7 @@ def _run_cli(*args: str, project: str = "/tmp/mb_extplug") -> subprocess.Complet
 
 
 def _wav_peak(path: pathlib.Path) -> float:
-    import struct, wave
+    import wave
     with wave.open(str(path), "rb") as w:
         n, wd, ch = w.getnframes(), w.getsampwidth(), w.getnchannels()
         f = w.readframes(n)
@@ -131,7 +129,7 @@ class TestHostRoundTrip:
             await daw.initialize()
             try:
                 t = await daw.create_track("synth")
-                ext_id = await daw.add_plugin(t.id, some_plugin["id"], as_instrument=True)
+                await daw.add_plugin(t.id, some_plugin["id"], as_instrument=True)
                 c = await daw.create_clip(t.id, "c", 0.0, 4.0)
                 await daw.add_notes(t.id, c.id,
                                     [Note(start=0.0, duration=2.0, pitch=60, velocity=110)])

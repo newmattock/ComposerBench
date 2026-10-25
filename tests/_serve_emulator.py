@@ -69,7 +69,7 @@ def catalog_specs(name):
     ComposerBench's device catalog (names, ranges, defaults, labels)."""
     try:
         from composerbench.devices.catalog import device
-    except Exception:  # noqa: BLE001 - emulator must work without the package
+    except Exception:
         return []
     entry = device(name)
     if not entry or entry.get("format", "internal") != "internal":
@@ -426,7 +426,7 @@ def main(argv):
                         return 0
                     try:
                         reply = project.handle(req)
-                    except Exception as e:  # noqa: BLE001
+                    except Exception as e:
                         reply = {"ok": False, "error": f"{type(e).__name__}: {e}"}
                     conn.sendall((json.dumps(reply) + "\n").encode())
     print("usage: emulator init <file> | serve <file> --sock <path>", file=sys.stderr)

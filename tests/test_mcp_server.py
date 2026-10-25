@@ -1,7 +1,7 @@
-from pathlib import Path
 import json
 import subprocess
 import sys
+from pathlib import Path
 
 import pytest
 
@@ -63,7 +63,7 @@ async def test_unknown_tool_is_protocol_error(server):
         "jsonrpc": "2.0", "id": 2, "method": "tools/call",
         "params": {"name": "music_nonexistent", "arguments": {}}})
     # tool-not-found is an exceptional condition -> protocol error per MCP spec
-    assert "error" in resp and resp["error"]["code"] == -32601 or "isError" in str(resp)
+    assert ("error" in resp and resp["error"]["code"] == -32601) or "isError" in str(resp)
 
 
 async def test_tool_error_inside_result(server):

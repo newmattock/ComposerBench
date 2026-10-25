@@ -13,9 +13,9 @@ from pathlib import Path
 
 import pytest
 
-MAGDA_CLI = Path(
-    "~/magda-core/cmake-build-debug/magda/daw/magda_cli_artefacts/Debug/magda_cli"
-).expanduser()
+from composerbench.engine import discover_cli
+
+MAGDA_CLI = discover_cli() or Path("/nonexistent/magda_cli")
 
 pytestmark = pytest.mark.skipif(
     not MAGDA_CLI.exists(), reason="magda-cli binary not built yet"

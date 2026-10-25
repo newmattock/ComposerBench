@@ -7,11 +7,11 @@ the composition plan, and semantic section labels stored under
 
 from __future__ import annotations
 
+import math
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
-import math
 import yaml
 
 COMPOSERBENCH_DIR = ".musicbench"

@@ -1,6 +1,5 @@
 """MCP production tools: catalog, presets, checks, background song builds, mixdown."""
 import asyncio
-import json
 import sys
 from pathlib import Path
 

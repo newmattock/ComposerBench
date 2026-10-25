@@ -14,7 +14,7 @@ def tone(frequency=100, rate=8000, seconds=1):
 
 def test_psd_preserves_energy_and_antiphase():
     samples = tone()
-    frequencies, times, power = spectral_map(samples, 8000, 2048)
+    frequencies, _times, power = spectral_map(samples, 8000, 2048)
     assert frequencies[np.argmax(power.mean(axis=1))] == pytest.approx(100, abs=4)
     assert power.sum(axis=0).mean() * (frequencies[1] - frequencies[0]) == pytest.approx(.25**2 / 2, rel=.01)
     stereo = np.concatenate([samples, -samples], axis=1)

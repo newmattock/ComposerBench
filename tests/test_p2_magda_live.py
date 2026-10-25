@@ -11,7 +11,7 @@ import time
 import pytest
 
 from composerbench.adapter.magda_serve import MagdaServeAdapter
-from composerbench.mcp.server import discover_cli
+from composerbench.engine import discover_cli
 from composerbench.model import Note
 
 CLI = discover_cli()

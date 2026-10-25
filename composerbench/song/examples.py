@@ -7,8 +7,7 @@ template ``composerbench song example`` prints and what the tests build.
 """
 from __future__ import annotations
 
-from composerbench.composition.patterns import (arpeggio, chord_notes, chord_root, hits, legato, note,
-                                             progression, ramp)
+from composerbench.composition.patterns import arpeggio, chord_notes, chord_root, hits, legato, note, progression, ramp
 from composerbench.composition.score import Score
 
 

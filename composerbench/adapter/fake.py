@@ -13,7 +13,6 @@ from __future__ import annotations
 import copy
 import io
 import math
-import struct
 import uuid
 import wave
 from pathlib import Path
