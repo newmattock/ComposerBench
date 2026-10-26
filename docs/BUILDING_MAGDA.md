@@ -9,12 +9,12 @@ master inserts, track renders and stems). Upstream MAGDA does not have it.
 | | |
 | --- | --- |
 | Base commit | `ebd93db06e7c197922d012b2aefbdf2f073e74ff` (#2033, 2026-08-06) |
-| Patch | `composerbench-serve` branch, one commit on the base (12 files under `magda/daw/`) |
+| Patch | [`newmattock/magda-core@composerbench-serve`](https://github.com/newmattock/magda-core/tree/composerbench-serve): one commit (`4962903`) on the base, 12 files under `magda/daw/` |
 | Submodule pins | those of the base commit (JUCE `04bba0f`, tracktion_engine `09f2748`, faust `2e20dde`, eurorack `41d8ce0`, llama.cpp `305ba51`, juce-llm `66f853e`) |
 | Protocol | 3 (`{"op":"describe"}` reports it); ComposerBench falls back to 2 and 1 with fewer features |
 
 ComposerBench itself does not ship MAGDA code (see [LICENSING.md](../LICENSING.md)),
-so the patch lives with MAGDA, not in this repository.
+so the patch lives in a MAGDA fork (GPL-3.0, like MAGDA), not in this repository.
 
 ## Linux (Ubuntu 24.04)
 
@@ -28,10 +28,8 @@ sudo apt-get install -y build-essential cmake ninja-build pkg-config git git-lfs
   libxext-dev libxinerama-dev libxrandr-dev libxrender-dev libwebkit2gtk-4.1-dev \
   libglu1-mesa-dev mesa-common-dev libxml2-dev zlib1g-dev libssl-dev lv2-dev liblilv-dev
 
-git clone https://github.com/Conceptual-Machines/magda-core ~/magda-core
+git clone --branch composerbench-serve https://github.com/newmattock/magda-core ~/magda-core
 cd ~/magda-core
-git checkout ebd93db06e7c197922d012b2aefbdf2f073e74ff
-git am /path/to/magda-composerbench-serve.patch        # or check out the composerbench-serve branch
 git lfs pull --include assets/fonts                     # the CJK font is in Git LFS; configure fails on a pointer
 git submodule update --init --depth 1 third_party/tracktion_engine third_party/JUCE \
   third_party/juce-llm third_party/eurorack third_party/faust third_party/llama.cpp
